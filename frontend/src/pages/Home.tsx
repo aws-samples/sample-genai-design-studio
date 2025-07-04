@@ -8,31 +8,33 @@ import {
   CardActionArea,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import CheckroomOutlinedIcon from '@mui/icons-material/CheckroomOutlined';
 import Person2Icon from '@mui/icons-material/Person2';
 import PhotoSizeSelectActualOutlinedIcon from '@mui/icons-material/PhotoSizeSelectActualOutlined';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const features = [
     {
-      title: 'Model Generation',
-      description: 'Generate high-quality model images from text prompts to use as the foundation for virtual try-on experiences',
+      titleKey: 'home.modelGeneration.title',
+      descriptionKey: 'home.modelGeneration.description',
       icon: <Person2Icon sx={{ fontSize: 60 }} />,
       path: '/model-generation',
       color: '#252F3D',
     },
     {
-      title: 'Virtual Try-On',
-      description: 'Create realistic virtual try-on images by combining garment images with model images',
+      titleKey: 'home.virtualTryOn.title',
+      descriptionKey: 'home.virtualTryOn.description',
       icon: <CheckroomOutlinedIcon sx={{ fontSize: 60 }} />,
       path: '/virtual-try-on',
       color: '#252F3D',
     },
     {
-      title: 'Background Replacement',
-      description: 'Replace backgrounds in model images with text prompts',
+      titleKey: 'home.backgroundReplacement.title',
+      descriptionKey: 'home.backgroundReplacement.description',
       icon: <PhotoSizeSelectActualOutlinedIcon sx={{ fontSize: 60 }} />,
       path: '/background-replacement',
       color: '#252F3D',
@@ -43,7 +45,7 @@ const Home: React.FC = () => {
     <Container maxWidth="lg">
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography variant="h3" component="h1" gutterBottom>
-          Virtual Try-On
+          {t('home.title')}
         </Typography>
       </Box>
 
@@ -56,7 +58,7 @@ const Home: React.FC = () => {
       >
         {features.map((feature) => (
           <Card
-            key={feature.title}
+            key={feature.titleKey}
             sx={{
               height: '100%',
               display: 'flex',
@@ -82,10 +84,10 @@ const Home: React.FC = () => {
                   {feature.icon}
                 </Box>
                 <Typography variant="h5" component="h2" gutterBottom>
-                  {feature.title}
+                  {t(feature.titleKey)}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {feature.description}
+                  {t(feature.descriptionKey)}
                 </Typography>
               </CardContent>
             </CardActionArea>

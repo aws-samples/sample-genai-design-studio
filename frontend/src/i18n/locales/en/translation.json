@@ -1,0 +1,36 @@
+{
+  "navigation": {
+    "menu": "Menu",
+    "home": "Home",
+    "modelGeneration": "Model Generation",
+    "virtualTryOn": "Virtual Try-On",
+    "backgroundReplacement": "Background Replacement",
+    "signOut": "Sign Out",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Virtual Try-On",
+    "modelGeneration": {
+      "title": "Model Generation",
+      "description": "Generate high-quality model images from text prompts to use as the foundation for virtual try-on experiences"
+    },
+    "virtualTryOn": {
+      "title": "Virtual Try-On",
+      "description": "Create realistic virtual try-on images by combining garment images with model images"
+    },
+    "backgroundReplacement": {
+      "title": "Background Replacement",
+      "description": "Replace backgrounds in model images with text prompts"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  }
+}

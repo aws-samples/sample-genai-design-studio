@@ -1,0 +1,36 @@
+{
+  "navigation": {
+    "menu": "メニュー",
+    "home": "ホーム",
+    "modelGeneration": "モデル生成",
+    "virtualTryOn": "バーチャル試着",
+    "backgroundReplacement": "背景変更",
+    "signOut": "サインアウト",
+    "language": "言語設定"
+  },
+  "home": {
+    "title": "バーチャル試着システム",
+    "modelGeneration": {
+      "title": "モデル生成",
+      "description": "テキストプロンプトから高品質なモデル画像を生成し、バーチャル試着の基盤として使用します"
+    },
+    "virtualTryOn": {
+      "title": "バーチャル試着",
+      "description": "服装画像とモデル画像を組み合わせて、リアルなバーチャル試着画像を作成します"
+    },
+    "backgroundReplacement": {
+      "title": "背景変更",
+      "description": "テキストプロンプトを使用してモデル画像の背景を変更します"
+    }
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる"
+  }
+}
