@@ -14,7 +14,6 @@ cdk-integ.out.*/
 
 __pycache__/
 *.venv*
-*.github*
 *.DS_Store*
 *.vscode/
 
