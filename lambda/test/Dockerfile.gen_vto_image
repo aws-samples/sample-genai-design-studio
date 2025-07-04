@@ -1,0 +1,13 @@
+# Use AWS Lambda Python 3.13 base image
+FROM public.ecr.aws/lambda/python:3.13
+
+# Copy requirements and install dependencies
+COPY gen_vto_image/requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install -r requirements.txt
+
+# Copy the Lambda function code
+COPY gen_vto_image/index.py ${LAMBDA_TASK_ROOT}/
+COPY gen_vto_image/utils ${LAMBDA_TASK_ROOT}/utils
+
+# Set the CMD to your handler
+CMD ["index.handler"]

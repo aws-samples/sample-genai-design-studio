@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#252F3D" />
+    <meta name="description" content="AI-powered Virtual Try-On Application using Amazon Nova Canvas" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VTO App" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+    <title>Virtual Try-On App</title>
+  
+    <script>
+      // Cognito設定をグローバル変数として埋め込み
+      window.COGNITO_CONFIG = {
+        userPoolId: "USER_POOL_ID_WILL_BE_REPLACED_BY_BUILD_PROCESS",
+        userPoolClientId: "USER_POOL_CLIENT_ID_WILL_BE_REPLACED_BY_BUILD_PROCESS",
+        region: "REGION_WILL_BE_REPLACED_BY_BUILD_PROCESS"
+      };
+    </script>
+    </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
