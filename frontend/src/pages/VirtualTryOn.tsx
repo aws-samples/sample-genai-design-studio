@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Stack,
@@ -41,6 +42,7 @@ import { useAppStore } from '../stores/appStore';
 
 const VirtualTryOn: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   // Zustand Store
   const {
@@ -303,7 +305,7 @@ const VirtualTryOn: React.FC = () => {
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
-        Virtual Try-On
+        {t('virtualTryOn.title')}
       </Typography>
       
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
@@ -316,11 +318,11 @@ const VirtualTryOn: React.FC = () => {
               aria-controls="model-image-content"
               id="model-image-header"
             >
-              <Typography variant="h6">Model Image</Typography>
+              <Typography variant="h6">{t('virtualTryOn.modelImage')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <ImageUpload
-                label="Model Image"
+                label={t('virtualTryOn.modelImage')}
                 onImageUpload={handleModelImageUpload}
                 uploadedImage={modelImage}
                 allowMask={true}
@@ -335,11 +337,11 @@ const VirtualTryOn: React.FC = () => {
               aria-controls="garment-image-content"
               id="garment-image-header"
             >
-              <Typography variant="h6">Garment Image</Typography>
+              <Typography variant="h6">{t('virtualTryOn.garmentImage')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <ImageUpload
-                label="Garment Image"
+                label={t('virtualTryOn.garmentImage')}
                 onImageUpload={handleGarmentImageUpload}
                 uploadedImage={garmentImage}
               />
@@ -353,19 +355,19 @@ const VirtualTryOn: React.FC = () => {
               aria-controls="vto-parameters-content"
               id="vto-parameters-header"
             >
-              <Typography variant="h6">VTO Parameters</Typography>
+              <Typography variant="h6">{t('virtualTryOn.vtoParameters')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
                 {/* Mask Parameters */}
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Mask Parameters</Typography>
+                    <Typography>{t('virtualTryOn.maskParameters')}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <FormControl fullWidth>
-                        <InputLabel>Mask Type</InputLabel>
+                        <InputLabel>{t('virtualTryOn.maskType')}</InputLabel>
                         <Select
                           value={maskType}
                           onChange={(e) => setVTOParameters({ maskType: e.target.value })}
@@ -384,7 +386,7 @@ const VirtualTryOn: React.FC = () => {
                           </Typography>
                           <TextField
                             fullWidth
-                            label="Mask Prompt"
+                            label={t('virtualTryOn.maskPrompt')}
                             placeholder="e.g., 'upper body clothing', 'shirt and jacket', 'dress'"
                             value={maskPrompt}
                             onChange={(e) => setVTOParameters({ maskPrompt: e.target.value })}
@@ -399,7 +401,7 @@ const VirtualTryOn: React.FC = () => {
                           </Typography>
                           <Box sx={{ position: 'relative' }}>
                             <ImageUpload
-                              label="Mask Image"
+                              label={t('virtualTryOn.maskPrompt')}
                               onImageUpload={handleMaskImageUpload}
                               uploadedImage={maskImage}
                               height={200}
@@ -429,7 +431,7 @@ const VirtualTryOn: React.FC = () => {
                             sourceImage={modelImage}
                             onMaskSave={handleMaskSave}
                             fullWidth
-                            buttonText="Create Mask Image"
+                            buttonText={t('virtualTryOn.createMaskImage')}
                             buttonVariant="outlined"
                           />
                         </Box>
@@ -695,7 +697,7 @@ const VirtualTryOn: React.FC = () => {
             onClick={handleGenerate}
             disabled={isLoading || !modelImage || !garmentImage}
           >
-            {isLoading ? 'Generating...' : 'Generate Try-On'}
+            {isLoading ? t('virtualTryOn.generating') : t('virtualTryOn.generate')}
           </Button>
 
           {error && (
@@ -715,12 +717,12 @@ const VirtualTryOn: React.FC = () => {
           selectedImageIndex={selectedImageIndex}
           onSelectImage={setVTOSelectedImageIndex}
           loading={isLoading}
-          title="Generated Images"
-          emptyMessage="Try-on result will appear here"
+          title={t('virtualTryOn.generatedImages')}
+          emptyMessage={t('virtualTryOn.emptyMessage')}
           loadingMessage={
-            uploadProgress ? 'Uploading images...' : 
-            processingProgress ? 'Processing VTO request...' : 
-            downloadProgress ? 'Retrieving generated images...' : 'Generating images...'
+            uploadProgress ? t('virtualTryOn.uploadingImages') : 
+            processingProgress ? t('virtualTryOn.processingVTO') : 
+            downloadProgress ? t('virtualTryOn.retrievingImages') : t('virtualTryOn.generating')
           }
           downloadFileName={`vto-result-${selectedImageIndex + 1}.png`}
         />
