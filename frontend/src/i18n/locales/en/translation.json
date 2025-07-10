@@ -9,7 +9,7 @@
     "language": "Language"
   },
   "home": {
-    "title": "Virtual Try-On",
+    "title": "GenAI Design Studio",
     "modelGeneration": {
       "title": "Model Generation",
       "description": "Generate high-quality model images from text prompts to use as the foundation for virtual try-on experiences"

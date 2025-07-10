@@ -9,7 +9,7 @@
     "language": "言語設定"
   },
   "home": {
-    "title": "バーチャル試着システム",
+    "title": "GenAI Design Studio",
     "modelGeneration": {
       "title": "モデル生成",
       "description": "テキストプロンプトから高品質なモデル画像を生成し、バーチャル試着の基盤として使用します"
