@@ -371,18 +371,18 @@ const VirtualTryOn: React.FC = () => {
                         <Select
                           value={maskType}
                           onChange={(e) => setVTOParameters({ maskType: e.target.value })}
-                          label="Mask Type"
+                          label={t('virtualTryOn.maskType')}
                         >
-                          <MenuItem value="GARMENT">Garment</MenuItem>
-                          <MenuItem value="PROMPT">Prompt</MenuItem>
-                          <MenuItem value="IMAGE">Image</MenuItem>
+                          <MenuItem value="GARMENT">{t('virtualTryOn.maskTypeGarment')}</MenuItem>
+                          <MenuItem value="PROMPT">{t('virtualTryOn.maskTypePrompt')}</MenuItem>
+                          <MenuItem value="IMAGE">{t('virtualTryOn.maskTypeImage')}</MenuItem>
                         </Select>
                       </FormControl>
 
                       {maskType === 'PROMPT' && (
                         <Box>
                           <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                            *Use text prompts to define the mask area*
+                            *{t('virtualTryOn.maskPromptDescription')}*
                           </Typography>
                           <TextField
                             fullWidth
@@ -397,7 +397,7 @@ const VirtualTryOn: React.FC = () => {
                       {maskType === 'IMAGE' && (
                         <Box>
                           <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                            *Upload a mask image to define the area to be replaced*
+                            *{t('virtualTryOn.maskImageDescription')}*
                           </Typography>
                           <Box sx={{ position: 'relative' }}>
                             <ImageUpload
@@ -441,18 +441,18 @@ const VirtualTryOn: React.FC = () => {
                       {maskType === 'PROMPT' && (
                         <Accordion>
                           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle2">PROMPT Mask Type Parameters</Typography>
+                            <Typography variant="subtitle2">{t('virtualTryOn.promptMaskTypeParams')}</Typography>
                           </AccordionSummary>
                           <AccordionDetails>
                             <FormControl component="fieldset">
-                              <FormLabel component="legend">Mask Shape for Prompt (optional)</FormLabel>
+                              <FormLabel component="legend">{t('virtualTryOn.maskShapePrompt')}</FormLabel>
                               <RadioGroup
                                 value={maskShapePrompt}
                                 onChange={(e) => setVTOParameters({ maskShapePrompt: e.target.value })}
                               >
-                                <FormControlLabel value="DEFAULT" control={<Radio />} label="Default" />
-                                <FormControlLabel value="CONTOUR" control={<Radio />} label="Contour" />
-                                <FormControlLabel value="BOUNDING_BOX" control={<Radio />} label="Bounding Box" />
+                                <FormControlLabel value="DEFAULT" control={<Radio />} label={t('virtualTryOn.default')} />
+                                <FormControlLabel value="CONTOUR" control={<Radio />} label={t('virtualTryOn.contour')} />
+                                <FormControlLabel value="BOUNDING_BOX" control={<Radio />} label={t('virtualTryOn.boundingBox')} />
                               </RadioGroup>
                             </FormControl>
                           </AccordionDetails>
@@ -463,96 +463,96 @@ const VirtualTryOn: React.FC = () => {
                       {maskType === 'GARMENT' && (
                         <Accordion>
                           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle2">Garment Mask Type Parameters</Typography>
+                            <Typography variant="subtitle2">{t('virtualTryOn.garmentMaskTypeParams')}</Typography>
                           </AccordionSummary>
                           <AccordionDetails>
                             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                              *These are used when mask type is GARMENT and no mask prompt is provided*
+                              *{t('virtualTryOn.garmentClassDescription')}*
                             </Typography>
 
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>Garment Class</InputLabel>
+                              <InputLabel>{t('virtualTryOn.garmentClass')}</InputLabel>
                               <Select
                                 value={garmentClass}
                                 onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
                               >
-                                <MenuItem value="UPPER_BODY">Upper Body</MenuItem>
-                                <MenuItem value="LOWER_BODY">Lower Body</MenuItem>
-                                <MenuItem value="FULL_BODY">Full Body</MenuItem>
-                                <MenuItem value="FOOTWEAR">Footwear</MenuItem>
-                                <MenuItem value="LONG_SLEEVE_SHIRT">Long Sleeve Shirt</MenuItem>
-                                <MenuItem value="SHORT_SLEEVE_SHIRT">Short Sleeve Shirt</MenuItem>
-                                <MenuItem value="NO_SLEEVE_SHIRT">No Sleeve Shirt</MenuItem>
-                                <MenuItem value="OTHER_UPPER_BODY">Other Upper Body</MenuItem>
-                                <MenuItem value="LONG_PANTS">Long Pants</MenuItem>
-                                <MenuItem value="SHORT_PANTS">Short Pants</MenuItem>
-                                <MenuItem value="OTHER_LOWER_BODY">Other Lower Body</MenuItem>
-                                <MenuItem value="LONG_DRESS">Long Dress</MenuItem>
-                                <MenuItem value="SHORT_DRESS">Short Dress</MenuItem>
-                                <MenuItem value="FULL_BODY_OUTFIT">Full Body Outfit</MenuItem>
-                                <MenuItem value="OTHER_FULL_BODY">Other Full Body</MenuItem>
-                                <MenuItem value="SHOES">Shoes</MenuItem>
-                                <MenuItem value="BOOTS">Boots</MenuItem>
-                                <MenuItem value="OTHER_FOOTWEAR">Other Footwear</MenuItem>
+                                <MenuItem value="UPPER_BODY">{t('virtualTryOn.upperBody')}</MenuItem>
+                                <MenuItem value="LOWER_BODY">{t('virtualTryOn.lowerBody')}</MenuItem>
+                                <MenuItem value="FULL_BODY">{t('virtualTryOn.fullBody')}</MenuItem>
+                                <MenuItem value="FOOTWEAR">{t('virtualTryOn.footwear')}</MenuItem>
+                                <MenuItem value="LONG_SLEEVE_SHIRT">{t('virtualTryOn.longSleeveShirt')}</MenuItem>
+                                <MenuItem value="SHORT_SLEEVE_SHIRT">{t('virtualTryOn.shortSleeveShirt')}</MenuItem>
+                                <MenuItem value="NO_SLEEVE_SHIRT">{t('virtualTryOn.noSleeveShirt')}</MenuItem>
+                                <MenuItem value="OTHER_UPPER_BODY">{t('virtualTryOn.otherUpperBody')}</MenuItem>
+                                <MenuItem value="LONG_PANTS">{t('virtualTryOn.longPants')}</MenuItem>
+                                <MenuItem value="SHORT_PANTS">{t('virtualTryOn.shortPants')}</MenuItem>
+                                <MenuItem value="OTHER_LOWER_BODY">{t('virtualTryOn.otherLowerBody')}</MenuItem>
+                                <MenuItem value="LONG_DRESS">{t('virtualTryOn.longDress')}</MenuItem>
+                                <MenuItem value="SHORT_DRESS">{t('virtualTryOn.shortDress')}</MenuItem>
+                                <MenuItem value="FULL_BODY_OUTFIT">{t('virtualTryOn.fullBodyOutfit')}</MenuItem>
+                                <MenuItem value="OTHER_FULL_BODY">{t('virtualTryOn.otherFullBody')}</MenuItem>
+                                <MenuItem value="SHOES">{t('virtualTryOn.shoes')}</MenuItem>
+                                <MenuItem value="BOOTS">{t('virtualTryOn.boots')}</MenuItem>
+                                <MenuItem value="OTHER_FOOTWEAR">{t('virtualTryOn.otherFootwear')}</MenuItem>
                               </Select>
                             </FormControl>
 
                             <Typography variant="h6" gutterBottom>
-                              Optional Parameters - Garment Styling
+                              {t('virtualTryOn.garmentStyling')}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                              *Leave unselected to use default values*
+                              *{t('virtualTryOn.garmentStylingDesc')}*
                             </Typography>
 
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>Long Sleeve Style</InputLabel>
+                              <InputLabel>{t('virtualTryOn.longSleeveStyle')}</InputLabel>
                               <Select
                                 value={longSleeveStyle}
                                 onChange={(e) => setVTOParameters({ longSleeveStyle: e.target.value })}
                                 label="Long Sleeve Style"
                               >
-                                <MenuItem value="">None</MenuItem>
-                                <MenuItem value="SLEEVE_DOWN">Sleeve Down</MenuItem>
-                                <MenuItem value="SLEEVE_UP">Sleeve Up</MenuItem>
+                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                <MenuItem value="SLEEVE_DOWN">{t('virtualTryOn.sleeveDown')}</MenuItem>
+                                <MenuItem value="SLEEVE_UP">{t('virtualTryOn.sleeveUp')}</MenuItem>
                               </Select>
                             </FormControl>
 
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>Tucking Style</InputLabel>
+                              <InputLabel>{t('virtualTryOn.tuckingStyle')}</InputLabel>
                               <Select
                                 value={tuckingStyle}
                                 onChange={(e) => setVTOParameters({ tuckingStyle: e.target.value })}
                                 label="Tucking Style"
                               >
-                                <MenuItem value="">None</MenuItem>
-                                <MenuItem value="UNTUCKED">Untucked</MenuItem>
-                                <MenuItem value="TUCKED">Tucked</MenuItem>
+                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                <MenuItem value="UNTUCKED">{t('virtualTryOn.untucked')}</MenuItem>
+                                <MenuItem value="TUCKED">{t('virtualTryOn.tucked')}</MenuItem>
                               </Select>
                             </FormControl>
 
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>Outer Layer Style</InputLabel>
+                              <InputLabel>{t('virtualTryOn.outerLayerStyle')}</InputLabel>
                               <Select
                                 value={outerLayerStyle}
                                 onChange={(e) => setVTOParameters({ outerLayerStyle: e.target.value })}
                                 label="Outer Layer Style"
                               >
-                                <MenuItem value="">None</MenuItem>
-                                <MenuItem value="CLOSED">Closed</MenuItem>
-                                <MenuItem value="OPEN">Open</MenuItem>
+                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                <MenuItem value="CLOSED">{t('virtualTryOn.closed')}</MenuItem>
+                                <MenuItem value="OPEN">{t('virtualTryOn.open')}</MenuItem>
                               </Select>
                             </FormControl>
 
                             <FormControl fullWidth>
-                              <InputLabel>Mask Shape for Garment</InputLabel>
+                              <InputLabel>{t('virtualTryOn.maskShapeGarment')}</InputLabel>
                               <Select
                                 value={maskShape}
                                 onChange={(e) => setVTOParameters({ maskShape: e.target.value })}
                                 label="Mask Shape for Garment"
                               >
-                                <MenuItem value="DEFAULT">Default</MenuItem>
-                                <MenuItem value="CONTOUR">Contour</MenuItem>
-                                <MenuItem value="BOUNDING_BOX">Bounding Box</MenuItem>
+                                <MenuItem value="DEFAULT">{t('virtualTryOn.default')}</MenuItem>
+                                <MenuItem value="CONTOUR">{t('virtualTryOn.contour')}</MenuItem>
+                                <MenuItem value="BOUNDING_BOX">{t('virtualTryOn.boundingBox')}</MenuItem>
                               </Select>
                             </FormControl>
                           </AccordionDetails>
@@ -563,56 +563,56 @@ const VirtualTryOn: React.FC = () => {
                       {maskType === 'IMAGE' && (
                         <Accordion>
                           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle2">IMAGE Mask Type Parameters</Typography>
+                            <Typography variant="subtitle2">{t('virtualTryOn.imageMaskTypeParams')}</Typography>
                           </AccordionSummary>
                           <AccordionDetails>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                               <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">Preserve Body Pose</FormLabel>
+                                <FormLabel component="legend">{t('virtualTryOn.preserveBodyPose')}</FormLabel>
                                 <RadioGroup
                                   row
                                   value={preserveBodyPose}
                                   onChange={(e) => setVTOParameters({ preserveBodyPose: e.target.value })}
                                 >
-                                  <FormControlLabel value="ON" control={<Radio />} label="On" />
-                                  <FormControlLabel value="OFF" control={<Radio />} label="Off" />
+                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
                                 </RadioGroup>
                               </FormControl>
 
                               <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">Preserve Hands</FormLabel>
+                                <FormLabel component="legend">{t('virtualTryOn.preserveHands')}</FormLabel>
                                 <RadioGroup
                                   row
                                   value={preserveHands}
                                   onChange={(e) => setVTOParameters({ preserveHands: e.target.value })}
                                 >
-                                  <FormControlLabel value="ON" control={<Radio />} label="On" />
-                                  <FormControlLabel value="OFF" control={<Radio />} label="Off" />
+                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
                                 </RadioGroup>
                               </FormControl>
 
                               <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">Preserve Face</FormLabel>
+                                <FormLabel component="legend">{t('virtualTryOn.preserveFace')}</FormLabel>
                                 <RadioGroup
                                   row
                                   value={preserveFace}
                                   onChange={(e) => setVTOParameters({ preserveFace: e.target.value })}
                                 >
-                                  <FormControlLabel value="ON" control={<Radio />} label="On" />
-                                  <FormControlLabel value="OFF" control={<Radio />} label="Off" />
+                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
                                 </RadioGroup>
                               </FormControl>
 
                               <FormControl fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Merge Style</InputLabel>
+                                <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
                                 <Select
                                   value={mergeStyle}
                                   onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
                                   label="Merge Style"
                                 >
-                                  <MenuItem value="BALANCED">Balanced</MenuItem>
-                                  <MenuItem value="SEAMLESS">Seamless</MenuItem>
-                                  <MenuItem value="DETAILED">Detailed</MenuItem>
+                                  <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
+                                  <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
+                                  <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
                                 </Select>
                               </FormControl>
                             </Box>
@@ -626,7 +626,7 @@ const VirtualTryOn: React.FC = () => {
                 {/* Image Generation Parameters */}
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Image Generation Parameters</Typography>
+                    <Typography>{t('virtualTryOn.imageGenerationParams')}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
                     <FormGroup sx={{ mb: 2 }}>
@@ -637,14 +637,14 @@ const VirtualTryOn: React.FC = () => {
                             onChange={(e) => setVTOParameters({ returnMask: e.target.checked })}
                           />
                         }
-                        label="Return Mask"
+                        label={t('virtualTryOn.returnMask')}
                       />
                     </FormGroup>
 
                     <TextField
                       fullWidth
                       type="number"
-                      label="Number of Images (default: 1)"
+                      label={t('virtualTryOn.numberOfImages')}
                       value={numberOfImages}
                       onChange={(e) => setVTOParameters({ numberOfImages: Number(e.target.value) })}
                       inputProps={{ min: 1, max: 5, step: 1 }}
@@ -652,18 +652,18 @@ const VirtualTryOn: React.FC = () => {
                     />
 
                     <FormControl component="fieldset" sx={{ mb: 2 }}>
-                      <FormLabel component="legend">Quality (default: standard)</FormLabel>
+                      <FormLabel component="legend">{t('virtualTryOn.quality')}</FormLabel>
                       <RadioGroup
                         value={quality}
                         onChange={(e) => setVTOParameters({ quality: e.target.value })}
                       >
-                        <FormControlLabel value="standard" control={<Radio />} label="Standard" />
-                        <FormControlLabel value="premium" control={<Radio />} label="Premium" />
+                        <FormControlLabel value="standard" control={<Radio />} label={t('virtualTryOn.standard')} />
+                        <FormControlLabel value="premium" control={<Radio />} label={t('virtualTryOn.premium')} />
                       </RadioGroup>
                     </FormControl>
 
                     <Box sx={{ mb: 2 }}>
-                      <Typography gutterBottom>CFG Scale (default: 3.0)</Typography>
+                      <Typography gutterBottom>{t('virtualTryOn.cfgScale')}</Typography>
                       <Slider
                         value={cfgScale}
                         onChange={(_, value) => setVTOParameters({ cfgScale: value as number })}
@@ -677,7 +677,7 @@ const VirtualTryOn: React.FC = () => {
                     <TextField
                       fullWidth
                       type="number"
-                      label="Seed (-1 for random)"
+                      label={t('virtualTryOn.seed')}
                       value={seed}
                       onChange={(e) => setVTOParameters({ seed: Number(e.target.value) })}
                       inputProps={{ min: -1, max: 2147483647, step: 1 }}
