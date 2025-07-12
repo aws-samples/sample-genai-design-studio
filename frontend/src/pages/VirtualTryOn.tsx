@@ -379,6 +379,19 @@ const VirtualTryOn: React.FC = () => {
                         </Select>
                       </FormControl>
 
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
+                        <Select
+                          value={mergeStyle}
+                          onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
+                          label="Merge Style"
+                        >
+                          <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
+                          <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
+                          <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
+                        </Select>
+                      </FormControl>
+
                       {maskType === 'PROMPT' && (
                         <Box>
                           <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
@@ -601,19 +614,6 @@ const VirtualTryOn: React.FC = () => {
                                   <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
                                   <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
                                 </RadioGroup>
-                              </FormControl>
-
-                              <FormControl fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
-                                <Select
-                                  value={mergeStyle}
-                                  onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
-                                  label="Merge Style"
-                                >
-                                  <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
-                                  <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
-                                  <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
-                                </Select>
                               </FormControl>
                             </Box>
                           </AccordionDetails>
