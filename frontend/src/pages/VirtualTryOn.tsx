@@ -629,18 +629,6 @@ const VirtualTryOn: React.FC = () => {
                     <Typography>{t('virtualTryOn.imageGenerationParams')}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <FormGroup sx={{ mb: 2 }}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={returnMask}
-                            onChange={(e) => setVTOParameters({ returnMask: e.target.checked })}
-                          />
-                        }
-                        label={t('virtualTryOn.returnMask')}
-                      />
-                    </FormGroup>
-
                     <TextField
                       fullWidth
                       type="number"
