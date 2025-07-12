@@ -10,6 +10,7 @@ import VirtualTryOn from './pages/VirtualTryOn';
 import ModelGeneration from './pages/ModelGeneration';
 import BackgroundReplacement from './pages/BackgroundReplacement';
 import Settings from './pages/Settings';
+import './i18n'; // i18n初期化
 import './App.css';
 
 function App() {

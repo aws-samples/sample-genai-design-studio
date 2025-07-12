@@ -17,6 +17,8 @@ import {
   Avatar,
   Menu,
   MenuItem,
+  Select,
+  FormControl,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -25,9 +27,12 @@ import {
   HomeOutlined,
   LandscapeOutlined,
   LogoutOutlined,
+  Language as LanguageIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useAppStore } from '../stores/appStore';
 
 const drawerWidth = 240;
 
@@ -37,6 +42,8 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ children }) => {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
+  const { language, setLanguage } = useAppStore();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -54,12 +61,11 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
   };
 
   const menuItems = [
-    { text: 'Home', icon: <HomeOutlined />, path: '/home' },
-    { text: 'Model Generation', icon: <Person2 />, path: '/model-generation' },
-    { text: 'Virtual Try-On', icon: <CheckroomOutlined />, path: '/virtual-try-on' },
-    { text: 'Background Replacement', icon: <LandscapeOutlined />, path: '/background-replacement' },
+    { textKey: 'navigation.home', icon: <HomeOutlined />, path: '/home' },
+    { textKey: 'navigation.modelGeneration', icon: <Person2 />, path: '/model-generation' },
+    { textKey: 'navigation.virtualTryOn', icon: <CheckroomOutlined />, path: '/virtual-try-on' },
+    { textKey: 'navigation.backgroundReplacement', icon: <LandscapeOutlined />, path: '/background-replacement' },
   ];
-
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -83,17 +89,22 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
     }
   };
 
+  const handleLanguageChange = (newLanguage: 'en' | 'ja') => {
+    setLanguage(newLanguage);
+    handleUserMenuClose();
+  };
+
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Menu
+          {t('navigation.menu')}
         </Typography>
       </Toolbar>
       <Divider />
       <List sx={{ flexGrow: 1 }}>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
+          <ListItem key={item.textKey} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
@@ -107,7 +118,7 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
               }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText primary={t(item.textKey)} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -139,7 +150,7 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Virtual Try-On
+            {t('home.title')}
           </Typography>
           {user && (
             <>
@@ -149,7 +160,7 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
                 sx={{ p: 0 }}
               >
                 <Avatar sx={{ width: 32, height: 32 }}>
-                  {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                  {user.email ? user.email.charAt(0).toUpperCase() : (user.username ? user.username.charAt(0).toUpperCase() : 'U')}
                 </Avatar>
               </IconButton>
               <Menu
@@ -179,11 +190,36 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
                   </Box>
                 </MenuItem>
                 <Divider />
+                <MenuItem>
+                  <ListItemIcon>
+                    <LanguageIcon fontSize="small" />
+                  </ListItemIcon>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Typography sx={{ mr: 2 }}>{t('navigation.language')}</Typography>
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={language.currentLanguage}
+                        onChange={(e) => handleLanguageChange(e.target.value as 'en' | 'ja')}
+                        variant="outlined"
+                        sx={{ 
+                          fontSize: '0.875rem',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: 'none',
+                          },
+                        }}
+                      >
+                        <MenuItem value="en">English</MenuItem>
+                        <MenuItem value="ja">日本語</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </MenuItem>
+                <Divider />
                 <MenuItem onClick={handleSignOut}>
                   <ListItemIcon>
                     <LogoutOutlined fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText>Sign Out</ListItemText>
+                  <ListItemText>{t('navigation.signOut')}</ListItemText>
                 </MenuItem>
               </Menu>
             </>

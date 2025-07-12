@@ -8,7 +8,9 @@ import type {
   ModelGenerationParameters,
   BackgroundReplacementParameters,
   GeneratedImage,
+  LanguageState,
 } from '../types/store';
+import i18n from '../i18n';
 
 // Default VTO Parameters
 const defaultVTOParameters: VTOParameters = {
@@ -96,6 +98,11 @@ const defaultBackgroundReplacementState: BackgroundReplacementState = {
   error: null,
 };
 
+// Default Language State
+const defaultLanguageState: LanguageState = {
+  currentLanguage: (localStorage.getItem('language') as 'en' | 'ja') || 'en',
+};
+
 interface AppStore extends AppState {
   // VTO Actions
   setVTOModelImage: (file: File | null, url: string | null) => void;
@@ -138,6 +145,9 @@ interface AppStore extends AppState {
   }) => void;
   resetBackgroundReplacement: () => void;
 
+  // Language Actions
+  setLanguage: (language: 'en' | 'ja') => void;
+
   // Global Actions
   resetAllStates: () => void;
 }
@@ -147,6 +157,7 @@ export const useAppStore = create<AppStore>((set, _get) => ({
   vto: defaultVTOState,
   modelGeneration: defaultModelGenerationState,
   backgroundReplacement: defaultBackgroundReplacementState,
+  language: defaultLanguageState,
 
   // VTO Actions
   setVTOModelImage: (file, url) =>
@@ -315,6 +326,19 @@ export const useAppStore = create<AppStore>((set, _get) => ({
     set((_state) => ({
       backgroundReplacement: defaultBackgroundReplacementState,
     })),
+
+  // Language Actions
+  setLanguage: (language) =>
+    set((state) => {
+      localStorage.setItem('language', language);
+      i18n.changeLanguage(language);
+      return {
+        ...state,
+        language: {
+          currentLanguage: language,
+        },
+      };
+    }),
 
   // Global Actions
   resetAllStates: () =>

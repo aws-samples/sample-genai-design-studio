@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Stack,
@@ -34,6 +35,7 @@ import { useAppStore } from '../stores/appStore';
 
 const BackgroundReplacement: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   // Zustand Store
   const {
@@ -260,7 +262,7 @@ const BackgroundReplacement: React.FC = () => {
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
-        Background Replacement
+        {t('backgroundReplacement.title')}
       </Typography>
       
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
@@ -273,11 +275,11 @@ const BackgroundReplacement: React.FC = () => {
               aria-controls="source-image-content"
               id="source-image-header"
             >
-              <Typography variant="h6">Source Image</Typography>
+              <Typography variant="h6">{t('backgroundReplacement.sourceImage')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <ImageUpload
-                label="Source Image"
+                label={t('backgroundReplacement.sourceImage')}
                 onImageUpload={handleSourceImageUpload}
                 uploadedImage={sourceImage}
               />
@@ -291,7 +293,7 @@ const BackgroundReplacement: React.FC = () => {
               aria-controls="background-parameters-content"
               id="background-parameters-header"
             >
-              <Typography variant="h6">Background Parameters</Typography>
+              <Typography variant="h6">{t('backgroundReplacement.backgroundParameters')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
@@ -300,36 +302,36 @@ const BackgroundReplacement: React.FC = () => {
                   fullWidth
                   multiline
                   rows={3}
-                  label="Background Description Prompt"
-                  placeholder="e.g., beautiful sunset over mountains, modern office interior, tropical beach scene"
+                  label={t('backgroundReplacement.backgroundPrompt')}
+                  placeholder={t('backgroundReplacement.backgroundPromptPlaceholder')}
                   value={prompt}
                   onChange={(e) => setBackgroundParameters({ prompt: e.target.value })}
-                  helperText="Enter detailed description of the new background in English (max 1024 characters)"
+                  helperText={t('backgroundReplacement.backgroundPromptHelp')}
                   inputProps={{ maxLength: 1024 }}
                 />
 
                 {/* Mask Prompt */}
                 <TextField
                   fullWidth
-                  label="Mask Prompt for Areas to Preserve"
-                  placeholder="e.g., people, person, face"
+                  label={t('backgroundReplacement.maskPrompt')}
+                  placeholder={t('backgroundReplacement.maskPromptPlaceholder')}
                   value={maskPrompt}
                   onChange={(e) => setBackgroundParameters({ maskPrompt: e.target.value })}
-                  helperText="Specify areas to preserve from background change in English (default: people)"
+                  helperText={t('backgroundReplacement.maskPromptHelp')}
                 />
 
                 {/* Optional Mask Image Upload */}
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Custom Mask Image (Optional)</Typography>
+                    <Typography>{t('backgroundReplacement.customMaskImage')}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
                     <Stack spacing={2}>
                       <Typography variant="body2" color="textSecondary">
-                        *Upload a custom mask image to precisely specify areas to protect*
+                        {t('backgroundReplacement.customMaskHelp')}
                       </Typography>
                       <ImageUpload
-                        label="Mask Image"
+                        label={t('backgroundReplacement.maskPrompt')}
                         onImageUpload={handleMaskImageUpload}
                         uploadedImage={maskImage}
                         height={200}
@@ -338,7 +340,7 @@ const BackgroundReplacement: React.FC = () => {
                         sourceImage={sourceImage}
                         onMaskSave={handleMaskSave}
                         fullWidth
-                        buttonText="Create Mask Image"
+                        buttonText={t('backgroundReplacement.createMaskImage')}
                         buttonVariant="outlined"
                       />
                     </Stack>
@@ -355,13 +357,13 @@ const BackgroundReplacement: React.FC = () => {
               aria-controls="advanced-parameters-content"
               id="advanced-parameters-header"
             >
-              <Typography variant="h6">Advanced Parameters</Typography>
+              <Typography variant="h6">{t('backgroundReplacement.advancedParameters')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
                 {/* Model ID */}
                 <FormControl fullWidth>
-                  <InputLabel>Model ID</InputLabel>
+                  <InputLabel>{t('backgroundReplacement.modelId')}</InputLabel>
                   <Select
                     value={modelId}
                     onChange={(e) => setBackgroundParameters({ modelId: e.target.value })}
@@ -373,7 +375,7 @@ const BackgroundReplacement: React.FC = () => {
 
                 {/* OutPainting Mode */}
                 <FormControl fullWidth>
-                  <InputLabel>OutPainting Mode</InputLabel>
+                  <InputLabel>{t('backgroundReplacement.outPaintingMode')}</InputLabel>
                   <Select
                     value={outPaintingMode}
                     onChange={(e) => setBackgroundParameters({ outPaintingMode: e.target.value as 'DEFAULT' | 'PRECISE' })}
@@ -429,7 +431,7 @@ const BackgroundReplacement: React.FC = () => {
             onClick={handleGenerate}
             disabled={isLoading || !sourceImage || !prompt.trim()}
           >
-            {isLoading ? 'Generating...' : 'Generate Background'}
+            {isLoading ? t('backgroundReplacement.generating') : t('backgroundReplacement.generateBackground')}
           </Button>
 
           {error && (
@@ -449,8 +451,8 @@ const BackgroundReplacement: React.FC = () => {
           selectedImageIndex={selectedImageIndex}
           onSelectImage={setBackgroundSelectedImageIndex}
           loading={isLoading}
-          title="Generated Images"
-          emptyMessage="Background replacement result will appear here"
+          title={t('backgroundReplacement.generatedImages')}
+          emptyMessage={t('backgroundReplacement.emptyMessage')}
           loadingMessage={
             uploadProgress ? 'Uploading images...' : 
             processingProgress ? 'Processing background replacement...' : 

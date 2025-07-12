@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Stack,
@@ -26,6 +27,7 @@ import { useAppStore } from '../stores/appStore';
 
 const ModelGeneration: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   // Zustand Store
   const {
@@ -175,21 +177,21 @@ const ModelGeneration: React.FC = () => {
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
-        Model Generation
+        {t('modelGeneration.title')}
       </Typography>
       
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
         {/* Left Side - Prompt and Parameters (1/3) */}
         <Box sx={{ flex: { xs: 1, lg: 1 }, maxWidth: { lg: '33%' } }}>
           <Typography variant="h6" gutterBottom>
-            Text Prompt
+            {t('modelGeneration.textPrompt')}
           </Typography>
           <TextField
             fullWidth
             multiline
             rows={4}
-            label="Describe the image you want to generate"
-            placeholder="e.g., 'A beautiful landscape with mountains and a lake at sunset'"
+            label={t('modelGeneration.describeImage')}
+            placeholder={t('modelGeneration.examplePrompt')}
             value={prompt}
             onChange={(e) => setModelGenerationParameters({ prompt: e.target.value })}
             sx={{ mb: 2 }}
@@ -202,7 +204,7 @@ const ModelGeneration: React.FC = () => {
               aria-controls="generation-parameters-content"
               id="generation-parameters-header"
             >
-              <Typography variant="h6">Generation Parameters</Typography>
+              <Typography variant="h6">{t('modelGeneration.generationParameters')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
@@ -210,14 +212,14 @@ const ModelGeneration: React.FC = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Number of Images"
+                  label={t('modelGeneration.numberOfImages')}
                   value={numberOfImages}
                   onChange={(e) => setModelGenerationParameters({ numberOfImages: Number(e.target.value) })}
                   inputProps={{ min: 1, max: 5, step: 1 }}
                 />
 
                 <Box>
-                  <Typography gutterBottom>CFG Scale: {cfgScale}</Typography>
+                  <Typography gutterBottom>{t('modelGeneration.cfgScale')}: {cfgScale}</Typography>
                   <Slider
                     value={cfgScale}
                     onChange={(_, value) => setModelGenerationParameters({ cfgScale: value as number })}
@@ -234,7 +236,7 @@ const ModelGeneration: React.FC = () => {
                   onSizeChange={(newWidth, newHeight) => {
                     setModelGenerationParameters({ width: newWidth, height: newHeight });
                   }}
-                  label="Output Image Size"
+                  label={t('modelGeneration.outputImageSize')}
                 />
               </Stack>
             </AccordionDetails>
@@ -249,7 +251,7 @@ const ModelGeneration: React.FC = () => {
             onClick={handleGenerate}
             disabled={isLoading || !prompt.trim()}
           >
-            {isLoading ? 'Generating...' : 'Generate'}
+            {isLoading ? t('modelGeneration.generating') : t('modelGeneration.generate')}
           </Button>
 
           {error && (
@@ -269,9 +271,9 @@ const ModelGeneration: React.FC = () => {
           selectedImageIndex={selectedImageIndex}
           onSelectImage={setModelGenerationSelectedImageIndex}
           loading={isLoading}
-          title="Generated Images"
-          emptyMessage="Generated images will appear here"
-          loadingMessage="Generating images..."
+          title={t('modelGeneration.generatedImages')}
+          emptyMessage={t('modelGeneration.emptyMessage')}
+          loadingMessage={t('modelGeneration.loadingMessage')}
           downloadFileName={`model-generation-${selectedImageIndex + 1}.png`}
         />
       </Stack>

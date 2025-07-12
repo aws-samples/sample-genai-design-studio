@@ -106,9 +106,15 @@ export interface BackgroundReplacementState {
   error: string | null;
 }
 
+// Language Settings
+export interface LanguageState {
+  currentLanguage: 'en' | 'ja';
+}
+
 // Main App State
 export interface AppState {
   vto: VTOState;
   modelGeneration: ModelGenerationState;
   backgroundReplacement: BackgroundReplacementState;
+  language: LanguageState;
 }
