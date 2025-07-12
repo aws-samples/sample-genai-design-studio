@@ -2,8 +2,8 @@
 
 ## Prerequisites
 ### Bedrock
-Enable Nova models in regions such as us-east-1/us-west-2. This sample uses Nova Canvas image generation models and Nova Micro/Lite text models.
-Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess) > `Manage model access`, check the entire Nova model family, and click `Save changes`.
+Enable Nova models in one of the following regions: us-east-1, ap-northeast-1, or eu-west-1. This sample uses Nova Canvas image generation models (only available in us-east-1, ap-northeast-1, and eu-west-1) and Nova Micro/Lite text models.
+Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access`, check the entire Nova model family, and click `Save changes`.
 
 ### CDK Execution Environment
 To deploy CDK projects, the following environment is required. Please set up the environment in advance.
@@ -20,7 +20,7 @@ To deploy CDK projects, the following environment is required. Please set up the
 
 ```bash
 # Install CDK dependencies
-cd vto-app/cdk
+cd cdk
 npm install
 
 # Install frontend dependencies
@@ -31,7 +31,7 @@ npm install
 ### 2. CDK Bootstrap (First time only)
 
 ```bash
-cd vto-app/cdk
+cd cdk
 npx cdk bootstrap
 ```
 
@@ -43,6 +43,7 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
 - allowedIpV6AddressRanges: Comma-separated list of allowed IPv6 ranges. (Default: allows all IPv6 addresses)
 - allowedSignUpEmailDomains: Comma-separated list of email domains allowed during sign-up. (Default: no domain restrictions)
 - autoJoinUserGroups: Comma-separated list of Cognito user groups that new users automatically join. (Default: admin)
+- deploymentRegion: Deployment region. Specify a region where Nova Canvas is available (us-east-1, ap-northeast-1, eu-west-1). (Default: us-east-1)
 
 ```json
 {
@@ -53,7 +54,8 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
     "userPoolDomainPrefix": "",
     "allowedSignUpEmailDomains": [],
     "autoJoinUserGroups": ["admin"],
-    "selfSignUpEnabled": true
+    "selfSignUpEnabled": true,
+    "deploymentRegion": "us-east-1"
   }
 }
 ```
@@ -62,7 +64,7 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
 ### Full Deployment (Recommended)
 
 ```bash
-cd vto-app/cdk
+cd cdk
 npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
 ```
 Upon completion of deployment, the following outputs will be displayed:
@@ -85,5 +87,5 @@ For production use, we strongly recommend adding IP address restrictions or disa
 To delete resources:
 
 ```bash
-cd vto-app/cdk
+cd cdk
 npx cdk destroy --all

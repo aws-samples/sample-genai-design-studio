@@ -2,8 +2,8 @@
 
 ## 事前準備
 ### Bedrock
-us-east-1/us-west-2 リージョンなどで、Nova モデルの有効化を行ってください。本サンプルではNova Canvasの画像生成モデルと Nova Micro/Lite などのテキストモデルを使用しています。
-[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess) > `Manage model access` からNovaモデルファミリー一式をチェックし、`Save changes`をクリックします
+us-east-1、ap-northeast-1、eu-west-1 のいずれかのリージョンで、Nova モデルの有効化を行ってください。本サンプルではNova Canvasの画像生成モデル（us-east-1、ap-northeast-1、eu-west-1でのみ利用可能）と Nova Micro/Lite などのテキストモデルを使用しています。
+[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` からNovaモデルファミリー一式をチェックし、`Save changes`をクリックします
 ### CDK実行環境
 CDK のプロジェクトをデプロイするには、以下の環境が必要です。事前に環境のセットアップを実施してください。
 
@@ -42,6 +42,7 @@ npx cdk bootstrap
 - allowedIpV6AddressRanges: 許可する IPv6 範囲のカンマ区切りリスト。（デフォルト: 全ての IPv6 アドレスを許可）
 - allowedSignUpEmailDomains: サインアップ時に許可するメールドメインのカンマ区切りリスト。（デフォルト: ドメイン制限なし）
 - autoJoinUserGroups: 新規ユーザー自動参加cognitoユーザーグループのカンマ区切りリスト。（デフォルト: admin）
+- deploymentRegion: デプロイ先リージョン。Nova Canvasが利用可能なリージョン（us-east-1、ap-northeast-1、eu-west-1）を指定してください。（デフォルト: us-east-1）
 
 ```json
 {
@@ -52,7 +53,8 @@ npx cdk bootstrap
     "userPoolDomainPrefix": "",
     "allowedSignUpEmailDomains": [],
     "autoJoinUserGroups": ["admin"],
-    "selfSignUpEnabled": true
+    "selfSignUpEnabled": true,
+    "deploymentRegion": "us-east-1"
   }
 }
 ```

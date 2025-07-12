@@ -21,10 +21,11 @@ const wafStack = new FrontendWafStack(app, 'VtoAppFrontendWafStack', {
 });
 
 // メインのアプリケーションスタック
+const deploymentRegion = app.node.tryGetContext('deploymentRegion') || process.env.CDK_DEFAULT_REGION;
 new VtoAppStack(app, 'VtoAppStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT, 
-    region: process.env.CDK_DEFAULT_REGION
+    region: deploymentRegion
   },
   crossRegionReferences: true, // クロスリージョン参照を有効化
   wafWebAclArn: wafStack.webAclArn.value, // us-east-1のWAF ARNを参照
