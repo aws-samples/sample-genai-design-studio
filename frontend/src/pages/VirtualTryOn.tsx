@@ -492,21 +492,7 @@ const VirtualTryOn: React.FC = () => {
                                 <MenuItem value="UPPER_BODY">{t('virtualTryOn.upperBody')}</MenuItem>
                                 <MenuItem value="LOWER_BODY">{t('virtualTryOn.lowerBody')}</MenuItem>
                                 <MenuItem value="FULL_BODY">{t('virtualTryOn.fullBody')}</MenuItem>
-                                <MenuItem value="FOOTWEAR">{t('virtualTryOn.footwear')}</MenuItem>
-                                <MenuItem value="LONG_SLEEVE_SHIRT">{t('virtualTryOn.longSleeveShirt')}</MenuItem>
-                                <MenuItem value="SHORT_SLEEVE_SHIRT">{t('virtualTryOn.shortSleeveShirt')}</MenuItem>
-                                <MenuItem value="NO_SLEEVE_SHIRT">{t('virtualTryOn.noSleeveShirt')}</MenuItem>
-                                <MenuItem value="OTHER_UPPER_BODY">{t('virtualTryOn.otherUpperBody')}</MenuItem>
-                                <MenuItem value="LONG_PANTS">{t('virtualTryOn.longPants')}</MenuItem>
-                                <MenuItem value="SHORT_PANTS">{t('virtualTryOn.shortPants')}</MenuItem>
-                                <MenuItem value="OTHER_LOWER_BODY">{t('virtualTryOn.otherLowerBody')}</MenuItem>
-                                <MenuItem value="LONG_DRESS">{t('virtualTryOn.longDress')}</MenuItem>
-                                <MenuItem value="SHORT_DRESS">{t('virtualTryOn.shortDress')}</MenuItem>
-                                <MenuItem value="FULL_BODY_OUTFIT">{t('virtualTryOn.fullBodyOutfit')}</MenuItem>
-                                <MenuItem value="OTHER_FULL_BODY">{t('virtualTryOn.otherFullBody')}</MenuItem>
                                 <MenuItem value="SHOES">{t('virtualTryOn.shoes')}</MenuItem>
-                                <MenuItem value="BOOTS">{t('virtualTryOn.boots')}</MenuItem>
-                                <MenuItem value="OTHER_FOOTWEAR">{t('virtualTryOn.otherFootwear')}</MenuItem>
                               </Select>
                             </FormControl>
 
