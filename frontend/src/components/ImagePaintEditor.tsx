@@ -44,6 +44,10 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const [history, setHistory] = useState<DrawingState[]>([]);
   const [historyStep, setHistoryStep] = useState(-1);
 
+  // Store original image dimensions
+  const [originalImageSize, setOriginalImageSize] = useState<{width: number; height: number}>({width: 0, height: 0});
+  const [imagePosition, setImagePosition] = useState<{x: number; y: number; scale: number}>({x: 0, y: 0, scale: 1});
+
   // Load image onto base canvas
   useEffect(() => {
     const baseCanvas = baseCanvasRef.current;
@@ -57,6 +61,12 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     const image = new Image();
     image.crossOrigin = 'anonymous';
     image.onload = () => {
+      // Store original image dimensions
+      setOriginalImageSize({
+        width: image.width,
+        height: image.height
+      });
+      
       // Clear base canvas
       baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
       
@@ -64,6 +74,9 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
       const scale = Math.min(baseCanvas.width / image.width, baseCanvas.height / image.height);
       const x = (baseCanvas.width - image.width * scale) / 2;
       const y = (baseCanvas.height - image.height * scale) / 2;
+      
+      // Store image position and scale for mask creation
+      setImagePosition({x, y, scale});
       
       // Draw image on base canvas
       baseCtx.drawImage(image, x, y, image.width * scale, image.height * scale);
@@ -193,12 +206,14 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
   const saveMask = () => {
     const paintCanvas = paintCanvasRef.current;
-    if (!paintCanvas || !onSaveMask) return;
+    const baseCanvas = baseCanvasRef.current;
+    if (!paintCanvas || !onSaveMask || !baseCanvas) return;
 
-    // Create a mask canvas (white background, black paint)
+    // Create a mask canvas with original image dimensions
+    // This ensures the mask matches the source image size exactly
     const maskCanvas = document.createElement('canvas');
-    maskCanvas.width = paintCanvas.width;
-    maskCanvas.height = paintCanvas.height;
+    maskCanvas.width = originalImageSize.width;
+    maskCanvas.height = originalImageSize.height;
     const maskCtx = maskCanvas.getContext('2d');
     if (!maskCtx) return;
 
@@ -210,29 +225,64 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     const paintImageData = paintCanvas.getContext('2d')?.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
     if (!paintImageData) return;
 
-    // Create mask: where there's paint (alpha > 0), make it black
-    const maskImageData = maskCtx.createImageData(maskCanvas.width, maskCanvas.height);
-    for (let i = 0; i < paintImageData.data.length; i += 4) {
-      const alpha = paintImageData.data[i + 3];
-      if (alpha > 0) {
-        // Paint area - make it black
-        maskImageData.data[i] = 0;     // R
-        maskImageData.data[i + 1] = 0; // G
-        maskImageData.data[i + 2] = 0; // B
-        maskImageData.data[i + 3] = 255; // A
+    // Create a temporary canvas to work with the paint data
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = paintCanvas.width;
+    tempCanvas.height = paintCanvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+
+    // Put the paint data on the temp canvas
+    tempCtx.putImageData(paintImageData, 0, 0);
+
+    // Draw only the area where the image is on the paint canvas
+    // We need to map from paint canvas coordinates to original image coordinates
+    maskCtx.fillStyle = 'black';
+    
+    // Apply the inverse transformation to map from canvas to original image
+    const { x, y, scale } = imagePosition;
+    
+    // We need to draw the painted areas (black) onto our mask canvas that's sized to the original image
+    maskCtx.drawImage(
+      tempCanvas,             // source canvas with paint
+      x, y,                   // source position (where image starts in the paint canvas)
+      originalImageSize.width * scale,  // source width (scaled image width)
+      originalImageSize.height * scale, // source height (scaled image height)
+      0, 0,                   // destination position (top-left of original-sized mask)
+      originalImageSize.width,         // destination width (original image width)
+      originalImageSize.height         // destination height (original image height)
+    );
+
+    // Invert the colors so that painted areas (black) stay black
+    // and non-painted areas become white
+    const maskImageData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+    const data = maskImageData.data;
+
+    // Since we filled with white and drew black, we need to adjust 
+    // so painted areas are black and non-painted are white
+    for (let i = 0; i < data.length; i += 4) {
+      // Check if the pixel is black (painted area)
+      const isBlack = data[i] < 128 && data[i+1] < 128 && data[i+2] < 128;
+      
+      if (isBlack) {
+        // Keep painted areas black
+        data[i] = 0;      // R
+        data[i + 1] = 0;  // G
+        data[i + 2] = 0;  // B
       } else {
-        // No paint area - make it white
-        maskImageData.data[i] = 255;   // R
-        maskImageData.data[i + 1] = 255; // G
-        maskImageData.data[i + 2] = 255; // B
-        maskImageData.data[i + 3] = 255; // A
+        // Make non-painted areas white
+        data[i] = 255;    // R
+        data[i + 1] = 255; // G
+        data[i + 2] = 255; // B
       }
+      data[i + 3] = 255;  // A - always fully opaque
     }
 
     maskCtx.putImageData(maskImageData, 0, 0);
 
     maskCanvas.toBlob((blob) => {
       if (blob) {
+        console.log(`Created mask with dimensions: ${maskCanvas.width}x${maskCanvas.height}`);
         const file = new File([blob], 'paint-mask.png', { type: 'image/png' });
         onSaveMask(file);
       }
