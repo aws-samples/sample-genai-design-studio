@@ -229,8 +229,6 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     
     // 元の画像の実際の表示サイズとオフセットを取得
     const { x, y, scale } = imagePosition;
-    const scaledWidth = originalImageSize.width * scale;
-    const scaledHeight = originalImageSize.height * scale;
 
     // ステップ5: ペイントキャンバス全体のピクセルデータを取得
     const paintImageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
