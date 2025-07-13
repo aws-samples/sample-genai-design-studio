@@ -503,44 +503,48 @@ const VirtualTryOn: React.FC = () => {
                               *{t('virtualTryOn.garmentStylingDesc')}*
                             </Typography>
 
-                            <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>{t('virtualTryOn.longSleeveStyle')}</InputLabel>
-                              <Select
-                                value={longSleeveStyle}
-                                onChange={(e) => setVTOParameters({ longSleeveStyle: e.target.value })}
-                                label="Long Sleeve Style"
-                              >
-                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
-                                <MenuItem value="SLEEVE_DOWN">{t('virtualTryOn.sleeveDown')}</MenuItem>
-                                <MenuItem value="SLEEVE_UP">{t('virtualTryOn.sleeveUp')}</MenuItem>
-                              </Select>
-                            </FormControl>
+                            {(garmentClass === 'UPPER_BODY' || garmentClass === 'FULL_BODY') && (
+                              <>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                  <InputLabel>{t('virtualTryOn.longSleeveStyle')}</InputLabel>
+                                  <Select
+                                    value={longSleeveStyle}
+                                    onChange={(e) => setVTOParameters({ longSleeveStyle: e.target.value })}
+                                    label="Long Sleeve Style"
+                                  >
+                                    <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                    <MenuItem value="SLEEVE_DOWN">{t('virtualTryOn.sleeveDown')}</MenuItem>
+                                    <MenuItem value="SLEEVE_UP">{t('virtualTryOn.sleeveUp')}</MenuItem>
+                                  </Select>
+                                </FormControl>
 
-                            <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>{t('virtualTryOn.tuckingStyle')}</InputLabel>
-                              <Select
-                                value={tuckingStyle}
-                                onChange={(e) => setVTOParameters({ tuckingStyle: e.target.value })}
-                                label="Tucking Style"
-                              >
-                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
-                                <MenuItem value="UNTUCKED">{t('virtualTryOn.untucked')}</MenuItem>
-                                <MenuItem value="TUCKED">{t('virtualTryOn.tucked')}</MenuItem>
-                              </Select>
-                            </FormControl>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                  <InputLabel>{t('virtualTryOn.tuckingStyle')}</InputLabel>
+                                  <Select
+                                    value={tuckingStyle}
+                                    onChange={(e) => setVTOParameters({ tuckingStyle: e.target.value })}
+                                    label="Tucking Style"
+                                  >
+                                    <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                    <MenuItem value="UNTUCKED">{t('virtualTryOn.untucked')}</MenuItem>
+                                    <MenuItem value="TUCKED">{t('virtualTryOn.tucked')}</MenuItem>
+                                  </Select>
+                                </FormControl>
 
-                            <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>{t('virtualTryOn.outerLayerStyle')}</InputLabel>
-                              <Select
-                                value={outerLayerStyle}
-                                onChange={(e) => setVTOParameters({ outerLayerStyle: e.target.value })}
-                                label="Outer Layer Style"
-                              >
-                                <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
-                                <MenuItem value="CLOSED">{t('virtualTryOn.closed')}</MenuItem>
-                                <MenuItem value="OPEN">{t('virtualTryOn.open')}</MenuItem>
-                              </Select>
-                            </FormControl>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                  <InputLabel>{t('virtualTryOn.outerLayerStyle')}</InputLabel>
+                                  <Select
+                                    value={outerLayerStyle}
+                                    onChange={(e) => setVTOParameters({ outerLayerStyle: e.target.value })}
+                                    label="Outer Layer Style"
+                                  >
+                                    <MenuItem value="">{t('virtualTryOn.none')}</MenuItem>
+                                    <MenuItem value="CLOSED">{t('virtualTryOn.closed')}</MenuItem>
+                                    <MenuItem value="OPEN">{t('virtualTryOn.open')}</MenuItem>
+                                  </Select>
+                                </FormControl>
+                              </>
+                            )}
 
                             <FormControl fullWidth>
                               <InputLabel>{t('virtualTryOn.maskShapeGarment')}</InputLabel>
