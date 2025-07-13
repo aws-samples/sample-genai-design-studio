@@ -17,8 +17,6 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  Checkbox,
-  FormGroup,
   Slider,
   Alert,
   IconButton,
