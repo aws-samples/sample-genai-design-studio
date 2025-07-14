@@ -63,20 +63,20 @@ def base64_to_pil_image(base64_str: str) -> Image.Image:
 
 
 def pil_to_binary_mask(pil_image: Image.Image) -> Image.Image:
-    """Convert PIL image to binary mask (inverted)"""
+    """Convert PIL image to binary mask"""
     np_image = np.array(pil_image)
 
     if len(np_image.shape) == 3 and np_image.shape[2] == 4:
         alpha_channel = np_image[:, :, 3]
-        # Invert: high alpha parts to black (0), low parts to white (255)
-        binary_mask = (alpha_channel <= 128).astype(np.uint8) * 255
+        # Non-inverted: low alpha parts to black (0), high parts to white (255)
+        binary_mask = (alpha_channel > 128).astype(np.uint8) * 255
     else:
         if len(np_image.shape) == 3:
             gray_image = np.mean(np_image, axis=2)
         else:
             gray_image = np_image
-        # Invert: high gray values to black (0), low values to white (255)
-        binary_mask = (gray_image <= 128).astype(np.uint8) * 255
+        # Non-inverted: low gray values to black (0), high values to white (255)
+        binary_mask = (gray_image > 128).astype(np.uint8) * 255
 
     return Image.fromarray(binary_mask, mode="L")
 

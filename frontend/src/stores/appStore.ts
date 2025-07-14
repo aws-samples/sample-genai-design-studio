@@ -25,7 +25,7 @@ const defaultVTOParameters: VTOParameters = {
   preserveBodyPose: 'DEFAULT',
   preserveHands: 'DEFAULT',
   preserveFace: 'DEFAULT',
-  mergeStyle: '',
+  mergeStyle: 'BALANCED',
   returnMask: false,
   numberOfImages: 1,
   quality: 'standard',

@@ -20,7 +20,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ImageUpload from '../components/ImageUpload';
 import ImageDisplay from '../components/ImageDisplay';
 import ImageSizeSelector from '../components/ImageSizeSelector';
-import MaskCreator from '../components/MaskCreator';
 import {
   generateObjectNames,
   getPresignedUploadUrl,
@@ -41,9 +40,7 @@ const BackgroundReplacement: React.FC = () => {
   const {
     backgroundReplacement: {
       sourceImageFile,
-      maskImageFile,
       sourceImage,
-      maskImage,
       generatedImages,
       selectedImageIndex,
       parameters: {
@@ -63,7 +60,6 @@ const BackgroundReplacement: React.FC = () => {
       error,
     },
     setBackgroundSourceImage,
-    setBackgroundMaskImage,
     setBackgroundGeneratedImages,
     setBackgroundSelectedImageIndex,
     setBackgroundParameters,
@@ -74,16 +70,6 @@ const BackgroundReplacement: React.FC = () => {
   const handleSourceImageUpload = (file: File) => {
     const url = URL.createObjectURL(file);
     setBackgroundSourceImage(file, url);
-  };
-
-  const handleMaskImageUpload = (file: File) => {
-    const url = URL.createObjectURL(file);
-    setBackgroundMaskImage(file, url);
-  };
-
-  const handleMaskSave = (file: File) => {
-    const url = URL.createObjectURL(file);
-    setBackgroundMaskImage(file, url);
   };
 
   // S3からの画像ポーリング（複数画像対応版）
@@ -165,7 +151,6 @@ const BackgroundReplacement: React.FC = () => {
       const { date_folder, timestamp, uid } = objectNamesResponse;
       
       const inputImageObjectName = `${groupId}/${userId}/background_replace/${date_folder}/${uid}/source_image.png`;
-      const maskImageObjectName = maskImageFile ? `${groupId}/${userId}/background_replace/${date_folder}/${uid}/mask_image.png` : undefined;
       
       // バリデーション用のリクエストオブジェクトを作成
       const requestData = {
@@ -174,7 +159,7 @@ const BackgroundReplacement: React.FC = () => {
         prompt: prompt,
         input_image_object_name: inputImageObjectName,
         mask_prompt: maskPrompt,
-        mask_image_object_name: maskImageObjectName,
+        mask_image_object_name: undefined,
         model_id: modelId,
         outPaintingMode: outPaintingMode,
         cfg_scale: cfgScale,
@@ -205,17 +190,7 @@ const BackgroundReplacement: React.FC = () => {
       
       const sourceUploadSuccess = await uploadFileToS3(sourceImageFile, sourceUploadUrlResponse.url);
       
-      // マスク画像がある場合はアップロード
-      let maskUploadSuccess = true;
-      if (maskImageFile && maskImageObjectName) {
-        const maskUploadUrlResponse = await getPresignedUploadUrl(maskImageObjectName);
-        if (!maskUploadUrlResponse.url) {
-          throw new Error('Failed to obtain presigned URL for mask image.');
-        }
-        maskUploadSuccess = await uploadFileToS3(maskImageFile, maskUploadUrlResponse.url);
-      }
-      
-      if (!sourceUploadSuccess || !maskUploadSuccess) {
+      if (!sourceUploadSuccess) {
         throw new Error('Image upload failed.');
       }
       
@@ -231,7 +206,7 @@ const BackgroundReplacement: React.FC = () => {
         prompt,
         inputImageObjectName,
         maskPrompt,
-        maskImageObjectName,
+        maskImageObjectName: undefined,
         modelId,
         outPaintingMode,
         cfgScale,
@@ -319,33 +294,6 @@ const BackgroundReplacement: React.FC = () => {
                   onChange={(e) => setBackgroundParameters({ maskPrompt: e.target.value })}
                   helperText={t('backgroundReplacement.maskPromptHelp')}
                 />
-
-                {/* Optional Mask Image Upload */}
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>{t('backgroundReplacement.customMaskImage')}</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Stack spacing={2}>
-                      <Typography variant="body2" color="textSecondary">
-                        {t('backgroundReplacement.customMaskHelp')}
-                      </Typography>
-                      <ImageUpload
-                        label={t('backgroundReplacement.maskPrompt')}
-                        onImageUpload={handleMaskImageUpload}
-                        uploadedImage={maskImage}
-                        height={200}
-                      />
-                      <MaskCreator
-                        sourceImage={sourceImage}
-                        onMaskSave={handleMaskSave}
-                        fullWidth
-                        buttonText={t('backgroundReplacement.createMaskImage')}
-                        buttonVariant="outlined"
-                      />
-                    </Stack>
-                  </AccordionDetails>
-                </Accordion>
               </Stack>
             </AccordionDetails>
           </Accordion>

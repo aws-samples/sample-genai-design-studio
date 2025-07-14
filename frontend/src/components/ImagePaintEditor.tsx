@@ -44,6 +44,10 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const [history, setHistory] = useState<DrawingState[]>([]);
   const [historyStep, setHistoryStep] = useState(-1);
 
+  // Store original image dimensions
+  const [originalImageSize, setOriginalImageSize] = useState<{width: number; height: number}>({width: 0, height: 0});
+  const [imagePosition, setImagePosition] = useState<{x: number; y: number; scale: number}>({x: 0, y: 0, scale: 1});
+
   // Load image onto base canvas
   useEffect(() => {
     const baseCanvas = baseCanvasRef.current;
@@ -57,6 +61,12 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     const image = new Image();
     image.crossOrigin = 'anonymous';
     image.onload = () => {
+      // Store original image dimensions
+      setOriginalImageSize({
+        width: image.width,
+        height: image.height
+      });
+      
       // Clear base canvas
       baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
       
@@ -64,6 +74,9 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
       const scale = Math.min(baseCanvas.width / image.width, baseCanvas.height / image.height);
       const x = (baseCanvas.width - image.width * scale) / 2;
       const y = (baseCanvas.height - image.height * scale) / 2;
+      
+      // Store image position and scale for mask creation
+      setImagePosition({x, y, scale});
       
       // Draw image on base canvas
       baseCtx.drawImage(image, x, y, image.width * scale, image.height * scale);
@@ -193,50 +206,97 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
   const saveMask = () => {
     const paintCanvas = paintCanvasRef.current;
-    if (!paintCanvas || !onSaveMask) return;
+    const baseCanvas = baseCanvasRef.current;
+    if (!paintCanvas || !onSaveMask || !baseCanvas) return;
 
-    // Create a mask canvas (white background, black paint)
+    // ステップ1: 元の画像と同じサイズの新しいキャンバスを作成
     const maskCanvas = document.createElement('canvas');
-    maskCanvas.width = paintCanvas.width;
-    maskCanvas.height = paintCanvas.height;
-    const maskCtx = maskCanvas.getContext('2d');
+    maskCanvas.width = originalImageSize.width;
+    maskCanvas.height = originalImageSize.height;
+    const maskCtx = maskCanvas.getContext('2d', { alpha: false }); // アルファチャンネルを無効化
     if (!maskCtx) return;
 
-    // Fill with white background
+    // ステップ2: マスクキャンバスを白で初期化（非マスク部分）
     maskCtx.fillStyle = 'white';
     maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-    // Get paint layer data
-    const paintImageData = paintCanvas.getContext('2d')?.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
-    if (!paintImageData) return;
+    // ステップ3: ペイントデータを取得
+    const paintCtx = paintCanvas.getContext('2d');
+    if (!paintCtx) return;
+    
+    // ステップ4: ペイントキャンバスを直接使わず、ピクセルごとに新しいマスク画像を作成
+    // これにより、座標変換が正確に行われる
+    
+    // 元の画像の実際の表示サイズとオフセットを取得
+    const { x, y, scale } = imagePosition;
 
-    // Create mask: where there's paint (alpha > 0), make it black
-    const maskImageData = maskCtx.createImageData(maskCanvas.width, maskCanvas.height);
-    for (let i = 0; i < paintImageData.data.length; i += 4) {
-      const alpha = paintImageData.data[i + 3];
-      if (alpha > 0) {
-        // Paint area - make it black
-        maskImageData.data[i] = 0;     // R
-        maskImageData.data[i + 1] = 0; // G
-        maskImageData.data[i + 2] = 0; // B
-        maskImageData.data[i + 3] = 255; // A
-      } else {
-        // No paint area - make it white
-        maskImageData.data[i] = 255;   // R
-        maskImageData.data[i + 1] = 255; // G
-        maskImageData.data[i + 2] = 255; // B
-        maskImageData.data[i + 3] = 255; // A
+    // ステップ5: ペイントキャンバス全体のピクセルデータを取得
+    const paintImageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+    
+    // ステップ6: 座標変換を行いながら、元の画像サイズに合わせたマスク画像を作成
+    // RGB形式でアルファチャンネルなしの最終キャンバスを作成
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = originalImageSize.width;
+    finalCanvas.height = originalImageSize.height;
+    const finalCtx = finalCanvas.getContext('2d', { alpha: false });
+    if (!finalCtx) return;
+    
+    // 最終キャンバスを白で初期化
+    finalCtx.fillStyle = 'white';
+    finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    
+    // ペイントキャンバス上の各ピクセルから元の画像サイズへの変換処理
+    for (let destY = 0; destY < maskCanvas.height; destY++) {
+      for (let destX = 0; destX < maskCanvas.width; destX++) {
+        // 元の画像座標から、ペイントキャンバス上の座標に変換
+        const sourceX = Math.round(x + destX * scale);
+        const sourceY = Math.round(y + destY * scale);
+        
+        // ペイントキャンバスの範囲内かチェック
+        if (
+          sourceX >= 0 && 
+          sourceX < paintCanvas.width && 
+          sourceY >= 0 && 
+          sourceY < paintCanvas.height
+        ) {
+          // ペイントキャンバス上のピクセル位置を計算
+          const sourcePos = (sourceY * paintCanvas.width + sourceX) * 4;
+          
+          // ペイントされていないかチェック（アルファ値がほぼ0）
+          if (paintImageData.data[sourcePos + 3] > 20) {
+            // ペイントされた領域は黒（マスク対象）にする
+            finalCtx.fillStyle = 'black';
+            finalCtx.fillRect(destX, destY, 1, 1);
+          }
+        }
       }
     }
-
-    maskCtx.putImageData(maskImageData, 0, 0);
-
-    maskCanvas.toBlob((blob) => {
-      if (blob) {
-        const file = new File([blob], 'paint-mask.png', { type: 'image/png' });
-        onSaveMask(file);
+    
+    // JPEGとして保存（アルファチャンネルを完全に排除）してから、PNGに変換
+    finalCanvas.toBlob((jpegBlob) => {
+      if (jpegBlob) {
+        // JPEGからPNGに変換（アルファチャンネルなし）
+        const img = new Image();
+        img.onload = () => {
+          const pngCanvas = document.createElement('canvas');
+          pngCanvas.width = originalImageSize.width;
+          pngCanvas.height = originalImageSize.height;
+          const pngCtx = pngCanvas.getContext('2d', { alpha: false });
+          if (!pngCtx) return;
+          
+          pngCtx.drawImage(img, 0, 0);
+          
+          pngCanvas.toBlob((pngBlob) => {
+            if (pngBlob) {
+              console.log(`Created mask with dimensions: ${pngCanvas.width}x${pngCanvas.height} (no alpha channel)`);
+              const file = new File([pngBlob], 'paint-mask.png', { type: 'image/png' });
+              onSaveMask(file);
+            }
+          }, 'image/png');
+        };
+        img.src = URL.createObjectURL(jpegBlob);
       }
-    }, 'image/png');
+    }, 'image/jpeg', 1.0);
   };
 
   return (
