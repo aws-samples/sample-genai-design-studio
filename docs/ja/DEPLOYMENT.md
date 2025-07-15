@@ -40,7 +40,7 @@ npx cdk bootstrap
 - selfSignUpEnabled: セルフ登録を無効にします（デフォルト: 有効）。このフラグを設定すると、Cognito 上で全てのユーザーを作成する必要があり、ユーザーが自分でアカウントを登録することはできなくなります。
 - allowedIpV4AddressRanges: 許可する IPv4 範囲のカンマ区切りリスト。（デフォルト: 全ての IPv4 アドレスを許可）
 - allowedIpV6AddressRanges: 許可する IPv6 範囲のカンマ区切りリスト。（デフォルト: 全ての IPv6 アドレスを許可）
-- allowedSignUpEmailDomains: サインアップ時に許可するメールドメインのカンマ区切りリスト。（デフォルト: ドメイン制限なし）
+- allowedSignUpEmailDomains: サインアップ時に許可するメールドメインのカンマ区切りリスト（「@」を含めずに指定してください）。（デフォルト: ドメイン制限なし）
 - autoJoinUserGroups: 新規ユーザー自動参加cognitoユーザーグループのカンマ区切りリスト。（デフォルト: admin）
 - deploymentRegion: デプロイ先リージョン。Nova Canvasが利用可能なリージョン（us-east-1、ap-northeast-1、eu-west-1）を指定してください。（デフォルト: us-east-1）
 
@@ -51,7 +51,7 @@ npx cdk bootstrap
     "allowedIpV6AddressRanges": ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"],
     "identityProviders": [],
     "userPoolDomainPrefix": "",
-    "allowedSignUpEmailDomains": [],
+    "allowedSignUpEmailDomains": ["example.co.jp", "company.com"],
     "autoJoinUserGroups": ["admin"],
     "selfSignUpEnabled": true,
     "deploymentRegion": "us-east-1"
