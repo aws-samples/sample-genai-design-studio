@@ -41,7 +41,7 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
 - selfSignUpEnabled: Disables self-registration (default: enabled). When this flag is set, all users must be created on Cognito, and users cannot register accounts themselves.
 - allowedIpV4AddressRanges: Comma-separated list of allowed IPv4 ranges. (Default: allows all IPv4 addresses)
 - allowedIpV6AddressRanges: Comma-separated list of allowed IPv6 ranges. (Default: allows all IPv6 addresses)
-- allowedSignUpEmailDomains: Comma-separated list of email domains allowed during sign-up. (Default: no domain restrictions)
+- allowedSignUpEmailDomains: Comma-separated list of email domains allowed during sign-up (specify domains without the "@" symbol). (Default: no domain restrictions)
 - autoJoinUserGroups: Comma-separated list of Cognito user groups that new users automatically join. (Default: admin)
 - deploymentRegion: Deployment region. Specify a region where Nova Canvas is available (us-east-1, ap-northeast-1, eu-west-1). (Default: us-east-1)
 
@@ -52,7 +52,7 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
     "allowedIpV6AddressRanges": ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"],
     "identityProviders": [],
     "userPoolDomainPrefix": "",
-    "allowedSignUpEmailDomains": [],
+    "allowedSignUpEmailDomains": ["example.co.jp", "company.com"],
     "autoJoinUserGroups": ["admin"],
     "selfSignUpEnabled": true,
     "deploymentRegion": "us-east-1"
