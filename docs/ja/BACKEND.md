@@ -50,8 +50,8 @@
 
 #### 実行方法
 ```bash
-cd vto-app/lambda/
-./test/local_api_test.zsh
+cd vto-app/lambda/test/
+local_api_test.zsh
 ```
 
 #### 概要
@@ -86,16 +86,16 @@ cd vto-app/lambda/
 
 #### 実行方法
 ```bash
-cd vto-app/lambda
+cd vto-app/lambda/test/
 
 # 初回実行（新規ユーザー作成）
-./test/lambda_api_test.zsh --username testuser --password Password123! --first-run
+lambda_api_test.zsh --username testuser --password Password123! --first-run
 
 # 2回目以降の実行（トークン更新）
-./test/lambda_api_test.zsh --username testuser --password Password123!
+lambda_api_test.zsh --username testuser --password Password123!
 
 # 特定のテストのみ実行
-./test/lambda_api_test.zsh --username testuser --password Password123! test_health_check
+lambda_api_test.zsh --username testuser --password Password123! test_health_check
 ```
 
 #### 概要
@@ -169,8 +169,8 @@ cd vto-app/lambda
 
 #### 実行方法
 ```bash
-cd vto-app/lambda
-./test/local_vto_test.zsh
+cd vto-app/lambda/test/
+local_vto_test.zsh
 ```
 
 #### 概要
@@ -197,8 +197,8 @@ cd vto-app/lambda
 
 #### 実行方法
 ```bash
-cd vto-app/lambda
-./test/lambda_vto_test.zsh
+cd vto-app/lambda/test/
+lambda_vto_test.zsh
 ```
 
 #### 概要
