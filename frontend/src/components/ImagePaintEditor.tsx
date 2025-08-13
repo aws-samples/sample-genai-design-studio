@@ -16,6 +16,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import CropFreeIcon from '@mui/icons-material/CropFree';
 
 interface ImagePaintEditorProps {
   imageUrl: string;
@@ -40,7 +41,10 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(25);
   const [brushColor] = useState('#000000');
-  const [tool, setTool] = useState<'brush' | 'eraser'>('brush');
+  const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle'>('brush');
+  const [isSelectingRect, setIsSelectingRect] = useState(false);
+  const [rectStart, setRectStart] = useState<{x: number; y: number} | null>(null);
+  const [rectEnd, setRectEnd] = useState<{x: number; y: number} | null>(null);
   const [history, setHistory] = useState<DrawingState[]>([]);
   const [historyStep, setHistoryStep] = useState(-1);
 
@@ -116,9 +120,16 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
     const pos = getMousePos(e);
     
+    if (tool === 'rectangle') {
+      setIsSelectingRect(true);
+      setRectStart(pos);
+      setRectEnd(pos);
+      return;
+    }
+    
+    setIsDrawing(true);
     const paintCanvas = paintCanvasRef.current;
     if (!paintCanvas) return;
 
@@ -130,6 +141,13 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const pos = getMousePos(e);
+    
+    if (tool === 'rectangle' && isSelectingRect) {
+      setRectEnd(pos);
+      return;
+    }
+    
     if (!isDrawing) return;
 
     const paintCanvas = paintCanvasRef.current;
@@ -137,8 +155,6 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
     const paintCtx = paintCanvas.getContext('2d');
     if (!paintCtx) return;
-
-    const pos = getMousePos(e);
 
     paintCtx.lineWidth = brushSize;
     paintCtx.lineCap = 'round';
@@ -157,6 +173,30 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   };
 
   const stopDrawing = () => {
+    if (tool === 'rectangle' && isSelectingRect && rectStart && rectEnd) {
+      // 矩形を描画
+      const paintCanvas = paintCanvasRef.current;
+      if (paintCanvas) {
+        const paintCtx = paintCanvas.getContext('2d');
+        if (paintCtx) {
+          paintCtx.globalCompositeOperation = 'source-over';
+          paintCtx.fillStyle = brushColor;
+          
+          const x = Math.min(rectStart.x, rectEnd.x);
+          const y = Math.min(rectStart.y, rectEnd.y);
+          const width = Math.abs(rectEnd.x - rectStart.x);
+          const height = Math.abs(rectEnd.y - rectStart.y);
+          
+          paintCtx.fillRect(x, y, width, height);
+          saveToHistory();
+        }
+      }
+      setIsSelectingRect(false);
+      setRectStart(null);
+      setRectEnd(null);
+      return;
+    }
+    
     if (isDrawing) {
       setIsDrawing(false);
       saveToHistory();
@@ -314,6 +354,13 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
               Brush
             </Button>
             <Button
+              startIcon={<CropFreeIcon />}
+              variant={tool === 'rectangle' ? 'contained' : 'outlined'}
+              onClick={() => setTool('rectangle')}
+            >
+              Rectangle
+            </Button>
+            <Button
               startIcon={<EraseIcon />}
               variant={tool === 'eraser' ? 'contained' : 'outlined'}
               onClick={() => setTool('eraser')}
@@ -402,10 +449,26 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
             top: 0,
             left: 0,
             border: '1px solid #ccc',
-            cursor: tool === 'brush' ? 'crosshair' : 'grab',
+            cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : 'grab',
             zIndex: 2,
           }}
         />
+        {/* Rectangle selection overlay */}
+        {isSelectingRect && rectStart && rectEnd && (
+          <div
+            style={{
+              position: 'absolute',
+              left: Math.min(rectStart.x, rectEnd.x),
+              top: Math.min(rectStart.y, rectEnd.y),
+              width: Math.abs(rectEnd.x - rectStart.x),
+              height: Math.abs(rectEnd.y - rectStart.y),
+              border: '2px dashed #ff0000',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              pointerEvents: 'none',
+              zIndex: 3,
+            }}
+          />
+        )}
       </Box>
     </Box>
   );
