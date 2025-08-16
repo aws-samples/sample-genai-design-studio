@@ -291,7 +291,7 @@ const VirtualTryOn: React.FC = () => {
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || err.message || 'Error occurred during VTO processing.';
       setVTOLoadingState({ 
-        error: errorMessage, 
+        error: `Error: ${errorMessage}`, 
         isLoading: false, 
         uploadProgress: false, 
         processingProgress: false, 
