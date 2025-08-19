@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+import '../i18n' // i18n設定を初期化
 
 // Cleanup after each test case
 afterEach(() => {
