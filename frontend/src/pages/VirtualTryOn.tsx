@@ -377,18 +377,6 @@ const VirtualTryOn: React.FC = () => {
                         </Select>
                       </FormControl>
 
-                      <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
-                        <Select
-                          value={mergeStyle}
-                          onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
-                          label="Merge Style"
-                        >
-                          <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
-                          <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
-                          <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
-                        </Select>
-                      </FormControl>
 
                       {maskType === 'PROMPT' && (
                         <Box>
@@ -560,53 +548,74 @@ const VirtualTryOn: React.FC = () => {
                         </Accordion>
                       )}
 
-                      {/* IMAGE Mask Type Parameters */}
-                      {maskType === 'IMAGE' && (
-                        <Accordion>
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle2">{t('virtualTryOn.imageMaskTypeParams')}</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveBodyPose')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveBodyPose}
-                                  onChange={(e) => setVTOParameters({ preserveBodyPose: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
 
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveHands')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveHands}
-                                  onChange={(e) => setVTOParameters({ preserveHands: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
+                {/* Optional Parameters */}
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>{t('virtualTryOn.optionalParameters')}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {/* Merge Style */}
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
+                        <Select
+                          value={mergeStyle}
+                          onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
+                          label={t('virtualTryOn.mergeStyle')}
+                        >
+                          <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
+                          <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
+                          <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
+                        </Select>
+                      </FormControl>
 
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveFace')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveFace}
-                                  onChange={(e) => setVTOParameters({ preserveFace: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
-                            </Box>
-                          </AccordionDetails>
-                        </Accordion>
-                      )}
+                      {/* Mask Exclusions */}
+                      <Typography variant="h6" gutterBottom>
+                        {t('virtualTryOn.maskExclusions')}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                        *{t('virtualTryOn.maskExclusionsDescription')}*
+                      </Typography>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveBodyPose')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveBodyPose}
+                          onChange={(e) => setVTOParameters({ preserveBodyPose: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveHands')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveHands}
+                          onChange={(e) => setVTOParameters({ preserveHands: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveFace')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveFace}
+                          onChange={(e) => setVTOParameters({ preserveFace: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
                     </Box>
                   </AccordionDetails>
                 </Accordion>
