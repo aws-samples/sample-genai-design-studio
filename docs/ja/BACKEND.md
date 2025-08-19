@@ -21,27 +21,23 @@
 
 ## バックエンド API エンドポイント
 
-### 認証エンドポイント
-- `POST /auth/login` - ユーザーログイン
-- `POST /auth/logout` - ユーザーログアウト
-- `POST /auth/refresh` - トークンリフレッシュ
-- `GET /auth/user` - ユーザー情報取得
+### ヘルスチェックエンドポイント
+- `GET /` - ルートエンドポイント（ヘルスチェック）
+- `GET /health` - ヘルスチェックエンドポイント
 
 ### VTO処理エンドポイント
-- `POST /nova-vto/process` - VTO処理を開始
-- `GET /nova-vto/status/{request_id}` - 処理状態を確認
-- `GET /nova-vto/result/{request_id}` - 処理結果を取得
+- `POST /vto/nova/process` - Nova Canvas VTO処理を開始
 
 ### モデル生成エンドポイント
-- `POST /nova-model/generate` - モデル画像生成
-- `GET /nova-model/status/{request_id}` - 生成状態を確認
+- `POST /vto/nova/model` - Nova Model テキストから画像生成
 
 ### 背景置換エンドポイント
-- `POST /background-replacement/process` - 背景置換処理
+- `POST /vto/nova/background` - Nova Canvas 背景置換処理
 
 ### ユーティリティエンドポイント
-- `GET /health` - ヘルスチェック
-- `POST /utils/upload-url` - S3アップロードURL取得
+- `GET /utils/get/objectname` - S3オブジェクト名生成
+- `POST /utils/s3url/upload` - S3アップロード用プリサインドURL取得
+- `POST /utils/s3url/download` - S3ダウンロード用プリサインドURL取得
 
 
 ## 1. Nova VTO API テスト
@@ -50,8 +46,8 @@
 
 #### 実行方法
 ```bash
-cd vto-app/lambda/test/
-local_api_test.zsh
+cd lambda/test/
+./local_api_test.zsh
 ```
 
 #### 概要
@@ -60,13 +56,20 @@ local_api_test.zsh
 - **ポート**: 8000
 - **テスト対象**: Nova VTO API の全エンドポイント
 
-#### 実行手順
-1. **AWS認証情報設定**: `isengardcli credentials` を使用してAWS認証情報を設定
-2. **S3バケット作成**: テスト用S3バケット `vto-app-{ACCOUNT_ID}` を作成
-3. **CORS設定**: S3バケットにCORS設定を追加
-4. **Dockerコンテナ起動**: FastAPIアプリケーションをコンテナで起動
-5. **APIテスト実行**: `test_nova_vto_api.py` を実行してAPI機能をテスト
-6. **クリーンアップ**: テスト完了後、コンテナを停止・削除
+#### 事前実行
+1. **AWS認証情報設定**: 以下のように、AWS認証情報を設定
+```
+export AWS_ACCESS_KEY_ID=XXXXX
+export AWS_SECRET_ACCESS_KEY=YYYYY
+export AWS_SESSION_TOKEN=ZZZZZZ
+```
+
+#### 実行内容
+1. **S3バケット作成**: テスト用S3バケット `vto-app-{ACCOUNT_ID}` を作成
+1. **CORS設定**: S3バケットにCORS設定を追加
+1. **Dockerコンテナ起動**: FastAPIアプリケーションをコンテナで起動
+1. **APIテスト実行**: `test_nova_vto_api.py` を実行してAPI機能をテスト
+1. **クリーンアップ**: テスト完了後、コンテナを停止・削除
 
 #### 主要パラメータ
 - `IMAGE_NAME`: vto-api-dev
@@ -86,16 +89,16 @@ local_api_test.zsh
 
 #### 実行方法
 ```bash
-cd vto-app/lambda/test/
+cd lambda/test/
 
 # 初回実行（新規ユーザー作成）
-lambda_api_test.zsh --username testuser --password Password123! --first-run
+./lambda_api_test.zsh --username your_email --password Password123! --first-run
 
 # 2回目以降の実行（トークン更新）
-lambda_api_test.zsh --username testuser --password Password123!
+./lambda_api_test.zsh --username your_email --password Password123!
 
 # 特定のテストのみ実行
-lambda_api_test.zsh --username testuser --password Password123! test_health_check
+./lambda_api_test.zsh --username your_email --password Password123! test_health_check
 ```
 
 #### 概要
@@ -126,7 +129,7 @@ lambda_api_test.zsh --username testuser --password Password123! test_health_chec
 > **⚠️ 重要な注意**: `ALLOW_ADMIN_USER_PASSWORD_AUTH` は開発環境でのテスト用途にのみ使用してください。プロダクション環境では、より安全な `ALLOW_USER_SRP_AUTH` の使用を推奨します。
 
 #### 認証パラメータ
-- `--username`: Cognito認証用のユーザー名（必須）
+- `--username`: Cognito認証用のユーザー名となるメールアドレス（必須）
 - `--password`: Cognito認証用のパスワード（必須）
 - `--first-run`: 初回実行フラグ（新規ユーザー作成時に使用）
 - `--cdk-outputs`: CDK出力ファイルのパス（デフォルト: `../cdk/.cdk-outputs.json`）
@@ -169,7 +172,7 @@ lambda_api_test.zsh --username testuser --password Password123! test_health_chec
 
 #### 実行方法
 ```bash
-cd vto-app/lambda/test/
+cd lambda/test/
 local_vto_test.zsh
 ```
 
@@ -197,7 +200,7 @@ local_vto_test.zsh
 
 #### 実行方法
 ```bash
-cd vto-app/lambda/test/
+cd lambda/test/
 lambda_vto_test.zsh
 ```
 
@@ -451,7 +454,7 @@ lambda_vto_test.zsh
 ### 完全テストフロー
 ```bash
 # 1. ローカルテスト実行
-cd vto-app/lambda/test
+cd lambda/test
 
 # API ローカルテスト
 ./local_api_test.zsh
