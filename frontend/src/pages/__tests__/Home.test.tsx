@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
+import { I18nextProvider } from 'react-i18next'
+import i18n from '../../i18n'
 import Home from '../Home'
 
 // Mock useNavigate
@@ -20,16 +22,18 @@ describe('Home', () => {
 
   const renderHome = () => {
     return render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
+      <I18nextProvider i18n={i18n}>
+        <BrowserRouter>
+          <Home />
+        </BrowserRouter>
+      </I18nextProvider>
     )
   }
 
   it('renders the main title', () => {
     renderHome()
     
-    expect(screen.getByRole('heading', { level: 1, name: 'Virtual Try-On' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'GenAI Design Studio' })).toBeInTheDocument()
   })
 
   it('renders Virtual Try-On feature card', () => {

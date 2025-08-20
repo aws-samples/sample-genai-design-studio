@@ -32,7 +32,7 @@
 テスト環境を自動的にセットアップするスクリプトを用意しています：
 
 ```bash
-cd vto-app/frontend
+cd frontend
 ./test/test_setup.zsh
 ```
 
@@ -60,7 +60,7 @@ EOF
 ## テストの実行
 ### セットアップスクリプトを実行
 ```bash
-cd vto-app/frontend
+cd frontend
 ./test/test_setup.zsh
 ```
 ### 手動でテストを実行

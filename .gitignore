@@ -1,5 +1,5 @@
 *.clinerules/
-cline-task/
+*clinetasks/
 lambda/test/test_data/output/
 *security_review/
 
