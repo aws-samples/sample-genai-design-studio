@@ -177,7 +177,7 @@ local_vto_test.zsh
 ```
 
 #### 概要
-- **目的**: Lambda Runtime Interface Emulator (RIE) を使用したローカルLambda実行テスト
+- **目的**: ローカルLambda実行テスト
 - **Docker Image**: `gen-vto-image-test`
 - **ポート**: 9000（Lambda RIE）
 - **Base Image**: `public.ecr.aws/lambda/python:3.13`
