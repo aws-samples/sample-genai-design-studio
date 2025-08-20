@@ -10,17 +10,7 @@ import {
   validateMaskImage,
   validateImageColorDepth,
 } from '../validation';
-import {
-  setupValidImageMocks,
-  setupInvalidSizeMocks,
-  setupLargeSizeMocks,
-  setupHighPixelCountMocks,
-  setupInvalidAspectRatioMocks,
-  setupSemiTransparentPNGMocks,
-  setupSemiTransparentWebPMocks,
-  setupOpaqueImageMocks,
-  setupBrowserMocks
-} from '../../test/mocks/setupBrowserMocks';
+
 
 describe('Image File Validation', () => {
   it('should validate valid image file', () => {
