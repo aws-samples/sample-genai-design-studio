@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   imageFileSchema,
   novaModelRequestSchema,
@@ -6,6 +6,9 @@ import {
   validateBackgroundReplacementRequest,
   validateNovaModelRequest,
   getValidationErrors,
+  validateImageResolution,
+  validateMaskImage,
+  validateImageColorDepth,
 } from '../validation';
 
 describe('Image File Validation', () => {
@@ -24,14 +27,332 @@ describe('Image File Validation', () => {
     expect(() => imageFileSchema.parse(invalidFile)).toThrowError(/MIMEタイプ/);
   });
 
+  it('should accept WebP files', () => {
+    const webpFile = new File(['content'], 'test.webp', { type: 'image/webp' });
+    expect(() => imageFileSchema.parse(webpFile)).not.toThrow();
+  });
+
   it('should accept all valid extensions', () => {
     const extensions = ['jpg', 'jpeg', 'png', 'webp'];
     const mimeTypes = ['image/jpeg', 'image/jpeg', 'image/png', 'image/webp'];
-    
+
     extensions.forEach((ext, index) => {
       const file = new File(['content'], `test.${ext}`, { type: mimeTypes[index] });
       expect(() => imageFileSchema.parse(file)).not.toThrow();
     });
+  });
+});
+
+// Helper function to create a mock image file with specific dimensions
+const createMockImageFile = (width: number, height: number, type: string = 'image/png'): File => {
+  // Create a canvas with the specified dimensions
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  // Fill with a solid color
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // Convert to blob and create file
+  return new Promise<File>((resolve) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], 'test.png', { type });
+        resolve(file);
+      }
+    }, type);
+  }) as any; // Type assertion for test purposes
+};
+
+// Helper function to create a mock image with alpha channel
+const createMockImageWithAlpha = (hasTransparentPixels: boolean, type: string = 'image/png'): File => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 100;
+
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // Fill with solid color first
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, 100, 100);
+
+    if (hasTransparentPixels) {
+      // Add some semi-transparent pixels
+      const imageData = ctx.getImageData(0, 0, 100, 100);
+      const data = imageData.data;
+
+      // Make some pixels semi-transparent (alpha = 128)
+      for (let i = 0; i < 400; i += 4) { // First 100 pixels
+        data[i + 3] = 128; // Set alpha to 128 (semi-transparent)
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+  }
+
+  return new Promise<File>((resolve) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], 'test.png', { type });
+        resolve(file);
+      }
+    }, type);
+  }) as any;
+};
+
+describe('Image Resolution Validation', () => {
+  let originalImage: typeof Image;
+  let originalFileReader: typeof FileReader;
+
+  beforeEach(() => {
+    // Save original constructors
+    originalImage = global.Image;
+    originalFileReader = global.FileReader;
+  });
+
+  afterEach(() => {
+    // Always restore original constructors
+    global.Image = originalImage;
+    global.FileReader = originalFileReader;
+  });
+
+  const mockImageAndFileReader = (width: number, height: number) => {
+    global.Image = class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      width = width;
+      height = height;
+
+      set src(value: string) {
+        setTimeout(() => {
+          if (this.onload) this.onload();
+        }, 0);
+      }
+    } as any;
+
+    global.FileReader = class MockFileReader {
+      onload: ((event: any) => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      readAsDataURL() {
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload({ target: { result: 'data:image/png;base64,test' } });
+          }
+        }, 0);
+      }
+    } as any;
+  };
+
+  it('should accept valid image dimensions', async () => {
+    mockImageAndFileReader(1024, 768);
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageResolution(file)).resolves.toBe(true);
+  });
+
+  it('should reject images with dimensions too small', async () => {
+    mockImageAndFileReader(200, 200); // Below minimum of 320
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageResolution(file)).rejects.toThrow(/320ピクセル以上/);
+  });
+
+  it('should reject images with dimensions too large', async () => {
+    mockImageAndFileReader(5000, 3000); // Above maximum of 4096
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageResolution(file)).rejects.toThrow(/4096ピクセル以下/);
+  });
+
+  it('should reject images with too many pixels', async () => {
+    mockImageAndFileReader(3000, 1500); // 3000 * 1500 = 4,500,000 pixels (exceeds 4,194,304)
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageResolution(file)).rejects.toThrow(/総ピクセル数が最大値/);
+  });
+
+  it('should reject images with invalid aspect ratio', async () => {
+    mockImageAndFileReader(2000, 400); // Aspect ratio 2000:400 = 5:1 (exceeds 4:1 limit, but meets min dimension)
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageResolution(file)).rejects.toThrow(/アスペクト比は1:4から4:1の範囲内/);
+  });
+});
+
+describe('Image Color Depth Validation', () => {
+  let originalImage: typeof Image;
+  let originalFileReader: typeof FileReader;
+  let originalCreateElement: typeof document.createElement;
+
+  beforeEach(() => {
+    // Save original constructors
+    originalImage = global.Image;
+    originalFileReader = global.FileReader;
+    originalCreateElement = global.document?.createElement;
+  });
+
+  afterEach(() => {
+    // Always restore original constructors
+    global.Image = originalImage;
+    global.FileReader = originalFileReader;
+    if (global.document && originalCreateElement) {
+      global.document.createElement = originalCreateElement;
+    }
+  });
+
+  const mockImageFileReaderAndCanvas = (imageData: Uint8ClampedArray, fileType: string = 'image/png') => {
+    global.Image = class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      width = 100;
+      height = 100;
+
+      set src(value: string) {
+        setTimeout(() => {
+          if (this.onload) this.onload();
+        }, 0);
+      }
+    } as any;
+
+    global.FileReader = class MockFileReader {
+      onload: ((event: any) => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      readAsDataURL() {
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload({ target: { result: `data:${fileType};base64,test` } });
+          }
+        }, 0);
+      }
+    } as any;
+
+    // Mock canvas and context
+    const mockCanvas = {
+      width: 0,
+      height: 0,
+      getContext: vi.fn(() => ({
+        drawImage: vi.fn(),
+        getImageData: vi.fn(() => ({ data: imageData }))
+      }))
+    };
+
+    global.document.createElement = vi.fn((tagName) => {
+      if (tagName === 'canvas') {
+        return mockCanvas as any;
+      }
+      return {} as any;
+    });
+  };
+
+  it('should accept JPEG images (no alpha channel)', async () => {
+    mockImageFileReaderAndCanvas(
+      new Uint8ClampedArray([255, 255, 255, 255]), // Any data is fine for JPEG
+      'image/jpeg'
+    );
+
+    const file = new File(['content'], 'test.jpg', { type: 'image/jpeg' });
+    await expect(validateImageColorDepth(file)).resolves.toBe(true);
+  });
+
+  it('should accept PNG images with fully opaque pixels', async () => {
+    const opaquePixels = new Uint8ClampedArray([
+      255, 255, 255, 255, // Fully opaque white pixel
+      0, 0, 0, 0,         // Fully transparent black pixel
+      255, 0, 0, 255      // Fully opaque red pixel
+    ]);
+
+    mockImageFileReaderAndCanvas(opaquePixels, 'image/png');
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageColorDepth(file)).resolves.toBe(true);
+  });
+
+  it('should reject PNG images with semi-transparent pixels', async () => {
+    const semiTransparentPixels = new Uint8ClampedArray([
+      255, 255, 255, 255, // Fully opaque white pixel
+      255, 0, 0, 128,     // Semi-transparent red pixel (alpha = 128)
+      0, 0, 0, 0          // Fully transparent black pixel
+    ]);
+
+    mockImageFileReaderAndCanvas(semiTransparentPixels, 'image/png');
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' });
+    await expect(validateImageColorDepth(file)).rejects.toThrow(/PNG画像のアルファチャンネルに透明または半透明のピクセル/);
+  });
+
+  it('should reject WebP images with semi-transparent pixels', async () => {
+    const semiTransparentPixels = new Uint8ClampedArray([
+      255, 255, 255, 200, // Semi-transparent white pixel (alpha = 200)
+      0, 0, 0, 0          // Fully transparent black pixel
+    ]);
+
+    mockImageFileReaderAndCanvas(semiTransparentPixels, 'image/webp');
+
+    const file = new File(['content'], 'test.webp', { type: 'image/webp' });
+    await expect(validateImageColorDepth(file)).rejects.toThrow(/WebP画像のアルファチャンネルに透明または半透明のピクセル/);
+  });
+});
+
+describe('Mask Image Validation', () => {
+  let originalImage: typeof Image;
+  let originalFileReader: typeof FileReader;
+
+  beforeEach(() => {
+    originalImage = global.Image;
+    originalFileReader = global.FileReader;
+  });
+
+  afterEach(() => {
+    global.Image = originalImage;
+    global.FileReader = originalFileReader;
+  });
+
+  const mockMaskImageValidation = (width: number, height: number) => {
+    global.Image = class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      width = width;
+      height = height;
+
+      set src(value: string) {
+        setTimeout(() => {
+          if (this.onload) this.onload();
+        }, 0);
+      }
+    } as any;
+
+    global.FileReader = class MockFileReader {
+      onload: ((event: any) => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      readAsDataURL() {
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload({ target: { result: 'data:image/png;base64,test' } });
+          }
+        }, 0);
+      }
+    } as any;
+  };
+
+  it('should use same validation as regular images', async () => {
+    mockMaskImageValidation(1024, 768);
+
+    const file = new File(['content'], 'mask.png', { type: 'image/png' });
+    await expect(validateMaskImage(file)).resolves.toBe(true);
+  });
+
+  it('should reject mask images with invalid dimensions', async () => {
+    mockMaskImageValidation(100, 100); // Below minimum
+
+    const file = new File(['content'], 'mask.png', { type: 'image/png' });
+    await expect(validateMaskImage(file)).rejects.toThrow(/320ピクセル以上/);
   });
 });
 

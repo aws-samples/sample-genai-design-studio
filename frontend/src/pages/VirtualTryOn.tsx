@@ -416,6 +416,7 @@ const VirtualTryOn: React.FC = () => {
                               onImageUpload={handleMaskImageUpload}
                               uploadedImage={maskImage}
                               height={200}
+                              isMaskImage={true}
                             />
                             {maskImage && (
                               <IconButton
