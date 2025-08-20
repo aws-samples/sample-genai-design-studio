@@ -4,7 +4,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { useDropzone } from 'react-dropzone';
 import type { ImageUploadProps } from '../types';
-import { imageFileSchema, validateImageResolution, validateMaskImage, validateImageColorDepth } from '../utils/validation';
+import { imageFileSchema, validateImageResolution, validateImageColorDepth } from '../utils/validation';
 import { pasteImageFromClipboard, isClipboardSupported } from '../utils/clipboard';
 
 const ImageUpload: React.FC<ImageUploadProps> = ({

@@ -5,6 +5,7 @@ export interface ImageUploadProps {
   uploadedImage: string | null;
   height?: number;
   allowMask?: boolean;
+  isMaskImage?: boolean;
 }
 
 // VTO (Virtual Try-On) related types

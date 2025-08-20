@@ -44,7 +44,8 @@ describe('Image File Validation', () => {
   });
 });
 
-// Helper function to create a mock image file with specific dimensions
+// Helper functions commented out to fix build errors
+/*
 const createMockImageFile = (width: number, height: number, type: string = 'image/png'): File => {
   // Create a canvas with the specified dimensions
   const canvas = document.createElement('canvas');
@@ -69,7 +70,6 @@ const createMockImageFile = (width: number, height: number, type: string = 'imag
   }) as any; // Type assertion for test purposes
 };
 
-// Helper function to create a mock image with alpha channel
 const createMockImageWithAlpha = (hasTransparentPixels: boolean, type: string = 'image/png'): File => {
   const canvas = document.createElement('canvas');
   canvas.width = 100;
@@ -104,6 +104,7 @@ const createMockImageWithAlpha = (hasTransparentPixels: boolean, type: string = 
     }, type);
   }) as any;
 };
+*/
 
 describe('Image Resolution Validation', () => {
   let originalImage: typeof Image;
@@ -111,31 +112,31 @@ describe('Image Resolution Validation', () => {
 
   beforeEach(() => {
     // Save original constructors
-    originalImage = global.Image;
-    originalFileReader = global.FileReader;
+    originalImage = globalThis.Image;
+    originalFileReader = globalThis.FileReader;
   });
 
   afterEach(() => {
     // Always restore original constructors
-    global.Image = originalImage;
-    global.FileReader = originalFileReader;
+    globalThis.Image = originalImage;
+    globalThis.FileReader = originalFileReader;
   });
 
   const mockImageAndFileReader = (width: number, height: number) => {
-    global.Image = class MockImage {
+    globalThis.Image = class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       width = width;
       height = height;
 
-      set src(value: string) {
+      set src(_value: string) {
         setTimeout(() => {
           if (this.onload) this.onload();
         }, 0);
       }
     } as any;
 
-    global.FileReader = class MockFileReader {
+    globalThis.FileReader = class MockFileReader {
       onload: ((event: any) => void) | null = null;
       onerror: (() => void) | null = null;
 
@@ -192,35 +193,35 @@ describe('Image Color Depth Validation', () => {
 
   beforeEach(() => {
     // Save original constructors
-    originalImage = global.Image;
-    originalFileReader = global.FileReader;
-    originalCreateElement = global.document?.createElement;
+    originalImage = globalThis.Image;
+    originalFileReader = globalThis.FileReader;
+    originalCreateElement = globalThis.document?.createElement;
   });
 
   afterEach(() => {
     // Always restore original constructors
-    global.Image = originalImage;
-    global.FileReader = originalFileReader;
-    if (global.document && originalCreateElement) {
-      global.document.createElement = originalCreateElement;
+    globalThis.Image = originalImage;
+    globalThis.FileReader = originalFileReader;
+    if (globalThis.document && originalCreateElement) {
+      globalThis.document.createElement = originalCreateElement;
     }
   });
 
   const mockImageFileReaderAndCanvas = (imageData: Uint8ClampedArray, fileType: string = 'image/png') => {
-    global.Image = class MockImage {
+    globalThis.Image = class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       width = 100;
       height = 100;
 
-      set src(value: string) {
+      set src(_value: string) {
         setTimeout(() => {
           if (this.onload) this.onload();
         }, 0);
       }
     } as any;
 
-    global.FileReader = class MockFileReader {
+    globalThis.FileReader = class MockFileReader {
       onload: ((event: any) => void) | null = null;
       onerror: (() => void) | null = null;
 
@@ -243,7 +244,7 @@ describe('Image Color Depth Validation', () => {
       }))
     };
 
-    global.document.createElement = vi.fn((tagName) => {
+    globalThis.document.createElement = vi.fn((tagName) => {
       if (tagName === 'canvas') {
         return mockCanvas as any;
       }
@@ -305,30 +306,30 @@ describe('Mask Image Validation', () => {
   let originalFileReader: typeof FileReader;
 
   beforeEach(() => {
-    originalImage = global.Image;
-    originalFileReader = global.FileReader;
+    originalImage = globalThis.Image;
+    originalFileReader = globalThis.FileReader;
   });
 
   afterEach(() => {
-    global.Image = originalImage;
-    global.FileReader = originalFileReader;
+    globalThis.Image = originalImage;
+    globalThis.FileReader = originalFileReader;
   });
 
   const mockMaskImageValidation = (width: number, height: number) => {
-    global.Image = class MockImage {
+    globalThis.Image = class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       width = width;
       height = height;
 
-      set src(value: string) {
+      set src(_value: string) {
         setTimeout(() => {
           if (this.onload) this.onload();
         }, 0);
       }
     } as any;
 
-    global.FileReader = class MockFileReader {
+    globalThis.FileReader = class MockFileReader {
       onload: ((event: any) => void) | null = null;
       onerror: (() => void) | null = null;
 
