@@ -147,7 +147,7 @@ export const novaVTORequestSchema = z.object({
   mask_image_object_name: z.string().optional(),
   mask_type: z.enum(['GARMENT', 'IMAGE', 'PROMPT']).default('GARMENT'),
   mask_prompt: z.string().optional().default(''),
-  garment_class: z.enum(['UPPER_BODY', 'LOWER_BODY', 'FULL_BODY', 'SHOES']).default('UPPER_BODY'),
+  garment_class: z.enum(['UPPER_BODY', 'LOWER_BODY', 'FULL_BODY', 'FOOTWEAR', 'LONG_SLEEVE_SHIRT', 'SHORT_SLEEVE_SHIRT', 'NO_SLEEVE_SHIRT', 'OTHER_UPPER_BODY', 'LONG_PANTS', 'SHORT_PANTS', 'OTHER_LOWER_BODY', 'LONG_DRESS', 'SHORT_DRESS', 'FULL_BODY_OUTFIT', 'OTHER_FULL_BODY', 'SHOES', 'BOOTS', 'OTHER_FOOTWEAR']).default('UPPER_BODY'),
   long_sleeve_style: z.string().optional(),
   tucking_style: z.string().optional(),
   outer_layer_style: z.string().optional(),
