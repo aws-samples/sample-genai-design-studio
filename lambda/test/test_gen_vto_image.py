@@ -82,14 +82,26 @@ class GenVTOImageTest(unittest.TestCase):
     @classmethod
     def _load_cdk_outputs(cls):
         """Load CDK outputs to get Lambda function name"""
-        cdk_outputs_path = "../cdk/.cdk-outputs.json"
+        # First, try to get from environment variable
+        cls.lambda_function_name = os.environ.get("LAMBDA_FUNCTION_NAME")
+
+        if cls.lambda_function_name:
+            logger.info(
+                f"Using Lambda function name from environment: {cls.lambda_function_name}"
+            )
+            return
+
+        # If not in environment, try to load from CDK outputs file
+        cdk_outputs_path = "../../cdk/.cdk-outputs.json"
         try:
             with open(cdk_outputs_path, "r") as f:
                 cdk_outputs = json.load(f)
                 cls.lambda_function_name = cdk_outputs["VtoAppStack"][
                     "GenImageFunctionName"
                 ]
-                logger.info(f"Loaded Lambda function name: {cls.lambda_function_name}")
+                logger.info(
+                    f"Loaded Lambda function name from CDK outputs: {cls.lambda_function_name}"
+                )
         except FileNotFoundError:
             logger.warning(f"CDK outputs file not found: {cdk_outputs_path}")
             cls.lambda_function_name = (
