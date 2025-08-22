@@ -567,11 +567,18 @@ const VirtualTryOn: React.FC = () => {
                                   onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
                                   label={t('virtualTryOn.garmentType')}
                                 >
-                                  {garmentCategories[mainCategory as keyof typeof garmentCategories].items.map((item) => (
-                                    <MenuItem key={item.value} value={item.value}>
-                                      {t(`virtualTryOn.${item.value.toLowerCase().replace(/_/g, '')}`) || item.label}
-                                    </MenuItem>
-                                  ))}
+                                  {garmentCategories[mainCategory as keyof typeof garmentCategories].items.map((item) => {
+                                    // Convert UPPER_BODY to upperBody, LONG_SLEEVE_SHIRT to longSleeveShirt, etc.
+                                    const translationKey = item.value.toLowerCase().split('_').map((word, index) => 
+                                      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+                                    ).join('');
+                                    
+                                    return (
+                                      <MenuItem key={item.value} value={item.value}>
+                                        {t(`virtualTryOn.${translationKey}`)}
+                                      </MenuItem>
+                                    );
+                                  })}
                                 </Select>
                               </FormControl>
                             )}

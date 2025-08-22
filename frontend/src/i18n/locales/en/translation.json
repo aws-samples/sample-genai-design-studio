@@ -69,7 +69,7 @@
     "garmentClassDescription": "These are used when mask type is GARMENT and no mask prompt is provided",
     "garmentClass": "Garment Class",
     "garmentCategory": "Garment Category",
-    "garmentType": "Garment Type",
+    "garmentType": "Detailed Category",
     "upperBody": "Upper Body",
     "lowerBody": "Lower Body",
     "fullBody": "Full Body",

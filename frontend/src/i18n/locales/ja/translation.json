@@ -69,7 +69,7 @@
     "garmentClassDescription": "これらはマスクタイプが衣服でマスクプロンプトが指定されていない場合に使用されます",
     "garmentClass": "衣服クラス",
     "garmentCategory": "衣服カテゴリー",
-    "garmentType": "衣服タイプ",
+    "garmentType": "詳細カテゴリ",
     "upperBody": "上半身",
     "lowerBody": "下半身",
     "fullBody": "全身",
