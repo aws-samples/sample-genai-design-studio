@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -38,9 +38,64 @@ import { validateNovaVTORequest, getValidationErrors } from '../utils/validation
 import { useAuth } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
 
+// Garment categories structure
+const garmentCategories = {
+  UPPER_BODY: {
+    label: 'Upper Body',
+    items: [
+      { value: 'UPPER_BODY', label: 'General Upper Body' },
+      { value: 'LONG_SLEEVE_SHIRT', label: 'Long Sleeve Shirt' },
+      { value: 'SHORT_SLEEVE_SHIRT', label: 'Short Sleeve Shirt' },
+      { value: 'NO_SLEEVE_SHIRT', label: 'No Sleeve Shirt' },
+      { value: 'OTHER_UPPER_BODY', label: 'Other Upper Body' },
+    ]
+  },
+  LOWER_BODY: {
+    label: 'Lower Body',
+    items: [
+      { value: 'LOWER_BODY', label: 'General Lower Body' },
+      { value: 'LONG_PANTS', label: 'Long Pants' },
+      { value: 'SHORT_PANTS', label: 'Short Pants' },
+      { value: 'OTHER_LOWER_BODY', label: 'Other Lower Body' },
+    ]
+  },
+  FULL_BODY: {
+    label: 'Full Body',
+    items: [
+      { value: 'FULL_BODY', label: 'General Full Body' },
+      { value: 'LONG_DRESS', label: 'Long Dress' },
+      { value: 'SHORT_DRESS', label: 'Short Dress' },
+      { value: 'FULL_BODY_OUTFIT', label: 'Full Body Outfit' },
+      { value: 'OTHER_FULL_BODY', label: 'Other Full Body' },
+    ]
+  },
+  FOOTWEAR: {
+    label: 'Footwear',
+    items: [
+      { value: 'FOOTWEAR', label: 'General Footwear' },
+      { value: 'SHOES', label: 'Shoes' },
+      { value: 'BOOTS', label: 'Boots' },
+      { value: 'OTHER_FOOTWEAR', label: 'Other Footwear' },
+    ]
+  },
+};
+
+// Helper function to get main category from garment class
+const getMainCategoryFromGarmentClass = (garmentClass: string): string => {
+  for (const [key, category] of Object.entries(garmentCategories)) {
+    if (category.items.some(item => item.value === garmentClass)) {
+      return key;
+    }
+  }
+  return 'UPPER_BODY'; // Default
+};
+
 const VirtualTryOn: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  
+  // State for main category
+  const [mainCategory, setMainCategory] = useState<string>('');
   
   // Zustand Store
   const {
@@ -86,6 +141,24 @@ const VirtualTryOn: React.FC = () => {
     setVTOParameters,
     setVTOLoadingState,
   } = useAppStore();
+
+  // Initialize main category based on current garment class
+  useEffect(() => {
+    const category = getMainCategoryFromGarmentClass(garmentClass);
+    setMainCategory(category);
+  }, [garmentClass]);
+  
+  // Handle main category change
+  const handleMainCategoryChange = (event: any) => {
+    const newCategory = event.target.value;
+    setMainCategory(newCategory);
+    
+    // Set garment class to the first item of the selected category
+    const categoryData = garmentCategories[newCategory as keyof typeof garmentCategories];
+    if (categoryData && categoryData.items.length > 0) {
+      setVTOParameters({ garmentClass: categoryData.items[0].value });
+    }
+  };
 
   const handleModelImageUpload = (file: File) => {
     const url = URL.createObjectURL(file);
@@ -470,32 +543,38 @@ const VirtualTryOn: React.FC = () => {
                               *{t('virtualTryOn.garmentClassDescription')}*
                             </Typography>
 
+                            {/* Main Category Selection */}
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>{t('virtualTryOn.garmentClass')}</InputLabel>
+                              <InputLabel>{t('virtualTryOn.garmentCategory')}</InputLabel>
                               <Select
-                                value={garmentClass}
-                                onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
+                                value={mainCategory}
+                                onChange={handleMainCategoryChange}
+                                label={t('virtualTryOn.garmentCategory')}
                               >
                                 <MenuItem value="UPPER_BODY">{t('virtualTryOn.upperBody')}</MenuItem>
                                 <MenuItem value="LOWER_BODY">{t('virtualTryOn.lowerBody')}</MenuItem>
                                 <MenuItem value="FULL_BODY">{t('virtualTryOn.fullBody')}</MenuItem>
                                 <MenuItem value="FOOTWEAR">{t('virtualTryOn.footwear')}</MenuItem>
-                                <MenuItem value="LONG_SLEEVE_SHIRT">{t('virtualTryOn.longSleeveShirt')}</MenuItem>
-                                <MenuItem value="SHORT_SLEEVE_SHIRT">{t('virtualTryOn.shortSleeveShirt')}</MenuItem>
-                                <MenuItem value="NO_SLEEVE_SHIRT">{t('virtualTryOn.noSleeveShirt')}</MenuItem>
-                                <MenuItem value="OTHER_UPPER_BODY">{t('virtualTryOn.otherUpperBody')}</MenuItem>
-                                <MenuItem value="LONG_PANTS">{t('virtualTryOn.longPants')}</MenuItem>
-                                <MenuItem value="SHORT_PANTS">{t('virtualTryOn.shortPants')}</MenuItem>
-                                <MenuItem value="OTHER_LOWER_BODY">{t('virtualTryOn.otherLowerBody')}</MenuItem>
-                                <MenuItem value="LONG_DRESS">{t('virtualTryOn.longDress')}</MenuItem>
-                                <MenuItem value="SHORT_DRESS">{t('virtualTryOn.shortDress')}</MenuItem>
-                                <MenuItem value="FULL_BODY_OUTFIT">{t('virtualTryOn.fullBodyOutfit')}</MenuItem>
-                                <MenuItem value="OTHER_FULL_BODY">{t('virtualTryOn.otherFullBody')}</MenuItem>
-                                <MenuItem value="SHOES">{t('virtualTryOn.shoes')}</MenuItem>
-                                <MenuItem value="BOOTS">{t('virtualTryOn.boots')}</MenuItem>
-                                <MenuItem value="OTHER_FOOTWEAR">{t('virtualTryOn.otherFootwear')}</MenuItem>
                               </Select>
                             </FormControl>
+
+                            {/* Detailed Garment Class Selection */}
+                            {mainCategory && (
+                              <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>{t('virtualTryOn.garmentType')}</InputLabel>
+                                <Select
+                                  value={garmentClass}
+                                  onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
+                                  label={t('virtualTryOn.garmentType')}
+                                >
+                                  {garmentCategories[mainCategory as keyof typeof garmentCategories].items.map((item) => (
+                                    <MenuItem key={item.value} value={item.value}>
+                                      {t(`virtualTryOn.${item.value.toLowerCase().replace(/_/g, '')}`) || item.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
 
                             <Typography variant="h6" gutterBottom>
                               {t('virtualTryOn.garmentStyling')}
