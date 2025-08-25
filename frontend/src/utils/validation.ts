@@ -78,7 +78,7 @@ export const novaVTORequestSchema = z.object({
   return_mask: z.boolean().default(false),
   number_of_images: z.number().int().min(1).max(5).default(1),
   quality: z.enum(['standard', 'premium']).default('standard'),
-  cfg_scale: z.number().min(1.0).max(10.0).default(3.0),
+  cfg_scale: z.number().min(1.0).max(10.0).default(6.5),
   seed: z.number().int().default(-1).refine((val) => {
     return val === -1 || (val >= 0 && val <= 2147483647);
   }, {

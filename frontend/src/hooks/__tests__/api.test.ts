@@ -319,7 +319,7 @@ describe('API hooks', () => {
       expect(callArgs.garment_class).toBe('UPPER_BODY')
       expect(callArgs.number_of_images).toBe(1)
       expect(callArgs.quality).toBe('standard')
-      expect(callArgs.cfg_scale).toBe(3.0)
+      expect(callArgs.cfg_scale).toBe(6.5)
       expect(callArgs.seed).toBe(-1)
     })
   })

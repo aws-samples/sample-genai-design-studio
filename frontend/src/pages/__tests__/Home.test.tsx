@@ -29,7 +29,7 @@ describe('Home', () => {
   it('renders the main title', () => {
     renderHome()
     
-    expect(screen.getByRole('heading', { level: 1, name: 'Virtual Try-On' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'GenAI Design Studio' })).toBeInTheDocument()
   })
 
   it('renders Virtual Try-On feature card', () => {

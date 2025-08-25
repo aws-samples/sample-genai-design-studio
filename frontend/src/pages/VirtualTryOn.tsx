@@ -639,7 +639,7 @@ const VirtualTryOn: React.FC = () => {
                     </FormControl>
 
                     <Box sx={{ mb: 2 }}>
-                      <Typography gutterBottom>{t('virtualTryOn.cfgScale')}</Typography>
+                      <Typography gutterBottom>{t('virtualTryOn.cfgScale')}: {cfgScale}</Typography>
                       <Slider
                         value={cfgScale}
                         onChange={(_, value) => setVTOParameters({ cfgScale: value as number })}

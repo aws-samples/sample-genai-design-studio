@@ -43,7 +43,7 @@ class NovaVTORequest(BaseModel):
         1, ge=1, le=5, description="Number of images to generate"
     )
     quality: Literal["standard", "premium"] = "premium"
-    cfg_scale: float = Field(3.0, ge=1.0, le=10.0, description="CFG scale")
+    cfg_scale: float = Field(6.5, ge=1.0, le=10.0, description="CFG scale")
     seed: int = Field(-1, description="Seed for random generation")
 
     @field_validator(
