@@ -405,7 +405,7 @@ describe('API hooks', () => {
       expect(mockApiClient.get).toHaveBeenCalledWith('/utils/get/data', {
         params: {
           object_name: 'test-object.jpg',
-          bucket_name: 'vto-app-local', // Use the default value from api.ts
+          bucket_name: 'vto-app-local', // Use the correct default value from api.ts
         },
       })
       expect(result).toEqual(mockResponse.data)
@@ -427,15 +427,36 @@ describe('API hooks', () => {
       }
       mockApiClient.post.mockResolvedValue(mockResponse)
 
+      // Mock FileReader
+      const mockBase64 = 'dGVzdA=='
+      const mockFileReader = {
+        readAsDataURL: vi.fn(),
+        onload: null as any,
+        onerror: null as any,
+        result: `data:image/jpeg;base64,${mockBase64}`,
+      }
+      
+      vi.stubGlobal('FileReader', vi.fn(() => mockFileReader))
+
       const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
-      const result = await classifyGarment(mockFile)
+      
+      const promise = classifyGarment(mockFile)
+      
+      // Simulate successful FileReader
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload()
+        }
+      }, 0)
+      
+      const result = await promise
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
         '/vto/classify-garment',
         {
           group_id: 'default_group',
           user_id: 'default_user',
-          image_base64: expect.any(String)
+          image_base64: mockBase64
         },
         {
           headers: {
@@ -450,9 +471,29 @@ describe('API hooks', () => {
       const mockError = new Error('Classification failed')
       mockApiClient.post.mockRejectedValue(mockError)
 
-      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      // Mock FileReader
+      const mockBase64 = 'dGVzdA=='
+      const mockFileReader = {
+        readAsDataURL: vi.fn(),
+        onload: null as any,
+        onerror: null as any,
+        result: `data:image/jpeg;base64,${mockBase64}`,
+      }
+      
+      vi.stubGlobal('FileReader', vi.fn(() => mockFileReader))
 
-      await expect(classifyGarment(mockFile)).rejects.toThrow('Classification failed')
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      
+      const promise = classifyGarment(mockFile)
+      
+      // Simulate successful FileReader
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload()
+        }
+      }, 0)
+
+      await expect(promise).rejects.toThrow('Classification failed')
     })
   })
 })
