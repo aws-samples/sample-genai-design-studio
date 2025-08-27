@@ -11,12 +11,7 @@ from aws_lambda_powertools import Logger
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 logger = Logger(service="api_proxy", level=LOG_LEVEL)
-
-# Bedrock client for Claude 3.5 Haiku
-bedrock_client = boto3.client("bedrock-runtime", region_name="us-east-1")
-
 router = APIRouter()
-
 
 def get_garment_class_mapping():
     """garmentClassのマッピング辞書を返す"""
@@ -86,7 +81,7 @@ JSON以外の文字は含めないでください。"""
 
 def call_claude_classification(image_bytes: bytes, model_id: str):
     """
-    Claude 3.5 Haikuで衣服画像を分類
+    Claude 3 Haikuで衣服画像を分類
     
     Args:
         image_bytes: 画像のバイトデータ
@@ -102,7 +97,7 @@ def call_claude_classification(image_bytes: bytes, model_id: str):
         # 分類プロンプトを生成
         prompt = create_classification_prompt()
         
-        # Claude 3.5 Haikuのリクエスト構造（Messages API形式）
+        # Claude 3 Haikuのリクエスト構造（Messages API形式）
         body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 1000,
@@ -127,7 +122,8 @@ def call_claude_classification(image_bytes: bytes, model_id: str):
             ]
         }
         
-        # Claude 3.5 Haikuを呼び出し
+        # Claude 3 Haikuを呼び出し
+        bedrock_client = boto3.client("bedrock-runtime")
         response = bedrock_client.invoke_model(
             body=json.dumps(body),
             modelId=model_id,
@@ -178,9 +174,7 @@ def classify_garment_image(image_bytes: bytes):
     """
     # Model IDs for fallback
     model_ids = [
-        "us.anthropic.claude-3-5-haiku-20241022-v1:0",  # inference profile ID
-        "anthropic.claude-3-5-haiku-20241022-v1:0",     # 直接モデルID
-        "anthropic.claude-3-haiku-20240307-v1:0"        # 古いバージョン
+        "anthropic.claude-3-haiku-20240307-v1:0"
     ]
     
     try:
@@ -225,7 +219,7 @@ def classify_garment_image(image_bytes: bytes):
 @router.post("/vto/classify-garment", response_model=GarmentClassificationResponse)
 async def classify_garment(request: GarmentClassificationRequest):
     """
-    Claude 3.5 Haiku を使用して衣服画像を分類する
+    Claude 3 Haiku を使用して衣服画像を分類する
 
     Args:
         request: GarmentClassificationリクエスト（画像データ）
