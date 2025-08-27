@@ -138,11 +138,18 @@ export class Api extends Construct {
     vtoImageBucket.grantReadWrite(this.vtoApiFunction);
     vtoImageBucket.grantReadWrite(this.vtoGenImageFunction);
 
-    // API LambdaにVTO生成Lambda関数を呼び出す権限を付与
+    // API LambdaにVTO生成Lambda関数を呼び出す権限とBedrock権限を付与
     this.vtoApiFunction.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['lambda:InvokeFunction'],
-      resources: [this.vtoGenImageFunction.functionArn],
+      actions: [
+        'lambda:InvokeFunction',
+        'bedrock:InvokeModel',
+        'bedrock:InvokeModelWithResponseStream'
+      ],
+      resources: [
+        this.vtoGenImageFunction.functionArn,
+        '*' // Bedrock models
+      ],
     }));
 
     // Bedrock権限をVTO生成Lambda関数に付与

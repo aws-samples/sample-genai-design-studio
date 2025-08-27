@@ -63,6 +63,11 @@ export interface VTOState {
   // Parameters
   parameters: VTOParameters;
   
+  // Auto classification
+  autoClassificationEnabled: boolean;
+  isClassifying: boolean;
+  classificationError: string | null;
+  
   // Loading states
   isLoading: boolean;
   uploadProgress: boolean;

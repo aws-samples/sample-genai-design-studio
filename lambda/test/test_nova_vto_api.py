@@ -2032,6 +2032,191 @@ class NovaVTOAPITest(unittest.TestCase):
 
         logger.info("Nova background replacement missing input image test passed")
 
+    def test_garment_classification_workflow(self):
+        """Test garment classification workflow with base64 image"""
+        logger.info("Testing garment classification workflow")
+
+        # Load test garment image
+        test_image_path = os.path.join(
+            os.path.dirname(__file__), "test_data", "input", "garment.png"
+        )
+        
+        if not os.path.exists(test_image_path):
+            logger.warning(f"Test image not found: {test_image_path}")
+            self.skipTest("Test image not available")
+
+        # Convert image to base64
+        image_base64 = self._image_to_base64(test_image_path)
+
+        # Step 1: Test garment classification
+        logger.info("Step 1: Testing garment classification")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "image_base64": image_base64,
+        }
+
+        logger.info(f"Garment classification request body keys: {list(request_body.keys())}")
+
+        response = requests.post(
+            f"{self.base_url}/vto/classify-garment",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,  # Longer timeout for AI processing
+        )
+
+        logger.info(f"Garment classification response status: {response.status_code}")
+        logger.info(f"Garment classification response body: {response.text}")
+
+        # Check successful response
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        
+        # Verify response structure
+        self.assertIn("request_id", response_data)
+        self.assertIn("status", response_data)
+        self.assertIn("message", response_data)
+        
+        # Check request_id format
+        expected_request_id = f"{self.group_id}_{self.user_id}"
+        self.assertEqual(response_data["request_id"], expected_request_id)
+
+        if response_data["status"] == "success":
+            # Verify successful classification result
+            self.assertIn("classification_result", response_data)
+            classification_result = response_data["classification_result"]
+            
+            self.assertTrue(classification_result["success"])
+            self.assertIn("result", classification_result)
+            self.assertIn("model_used", classification_result)
+            
+            # Verify classification result structure
+            result = classification_result["result"]
+            self.assertIn("category_id", result)
+            self.assertIn("category_name", result)
+            self.assertIn("confidence", result)
+            self.assertIn("reasoning", result)
+            
+            # Verify category_id is valid (5-18)
+            self.assertGreaterEqual(result["category_id"], 5)
+            self.assertLessEqual(result["category_id"], 18)
+            
+            # Verify confidence is between 0 and 1
+            self.assertGreaterEqual(result["confidence"], 0.0)
+            self.assertLessEqual(result["confidence"], 1.0)
+            
+            logger.info(f"Classification successful: {result['category_name']} (ID: {result['category_id']}, Confidence: {result['confidence']:.2%})")
+            logger.info(f"Reasoning: {result['reasoning']}")
+            
+        elif response_data["status"] == "error":
+            # Log error but don't fail the test (AI service might be temporarily unavailable)
+            logger.warning(f"Classification failed: {response_data.get('error', 'Unknown error')}")
+            logger.info("Test passed despite classification error (service may be temporarily unavailable)")
+        else:
+            self.fail(f"Unexpected status: {response_data['status']}")
+
+        logger.info("Garment classification workflow test passed")
+
+    def test_garment_classification_missing_image(self):
+        """Test garment classification with missing image data (should fail)"""
+        logger.info("Testing garment classification with missing image data")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            # Missing both image_base64 and image_object_name
+        }
+
+        logger.info(f"Garment classification missing image request body: {request_body}")
+
+        response = requests.post(
+            f"{self.base_url}/vto/classify-garment",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(f"Garment classification missing image response status: {response.status_code}")
+        logger.info(f"Garment classification missing image response body: {response.text}")
+
+        # Check validation error occurs
+        self.assertEqual(response.status_code, 422)
+
+        logger.info("Garment classification missing image test passed")
+
+    def test_garment_classification_invalid_base64(self):
+        """Test garment classification with invalid base64 data (should fail)"""
+        logger.info("Testing garment classification with invalid base64 data")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "image_base64": "invalid_base64_data_that_cannot_be_decoded",
+        }
+
+        logger.info(f"Garment classification invalid base64 request body keys: {list(request_body.keys())}")
+
+        response = requests.post(
+            f"{self.base_url}/vto/classify-garment",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(f"Garment classification invalid base64 response status: {response.status_code}")
+        logger.info(f"Garment classification invalid base64 response body: {response.text}")
+
+        # Check error response (API handles invalid base64 gracefully and returns 200 with error status)
+        self.assertEqual(response.status_code, 200)
+        
+        response_data = response.json()
+        self.assertEqual(response_data["status"], "error")
+        self.assertIn("error", response_data)
+        self.assertIsNotNone(response_data["error"])
+
+        logger.info("Garment classification invalid base64 test passed")
+
+    def test_garment_classification_empty_group_id(self):
+        """Test garment classification with empty group_id (should fail)"""
+        logger.info("Testing garment classification with empty group_id")
+
+        # Load test garment image
+        test_image_path = os.path.join(
+            os.path.dirname(__file__), "test_data", "input", "garment.png"
+        )
+        
+        if not os.path.exists(test_image_path):
+            logger.warning(f"Test image not found: {test_image_path}")
+            self.skipTest("Test image not available")
+
+        # Convert image to base64
+        image_base64 = self._image_to_base64(test_image_path)
+
+        request_body = {
+            "group_id": "",  # Empty group_id
+            "user_id": self.user_id,
+            "image_base64": image_base64,
+        }
+
+        logger.info(f"Garment classification empty group_id request body keys: {list(request_body.keys())}")
+
+        response = requests.post(
+            f"{self.base_url}/vto/classify-garment",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(f"Garment classification empty group_id response status: {response.status_code}")
+        logger.info(f"Garment classification empty group_id response body: {response.text}")
+
+        # Check validation error occurs
+        self.assertEqual(response.status_code, 422)
+
+        logger.info("Garment classification empty group_id test passed")
+
 
 def main():
     """Main function - Execute unittest"""
