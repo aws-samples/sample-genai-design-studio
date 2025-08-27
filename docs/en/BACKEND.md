@@ -49,8 +49,8 @@ After deployment, execute tests in the production environment for final verifica
 
 #### Execution Method
 ```bash
-cd vto-app/lambda/
-./test/local_api_test.zsh
+cd vto-app/lambda/test/
+local_api_test.zsh
 ```
 
 #### Overview
@@ -85,16 +85,16 @@ cd vto-app/lambda/
 
 #### Execution Method
 ```bash
-cd vto-app/lambda
+cd vto-app/lambda/test/
 
 # First execution (create new user)
-./test/lambda_api_test.zsh --username testuser --password Password123! --first-run
+lambda_api_test.zsh --username testuser --password Password123! --first-run
 
 # Subsequent executions (token refresh)
-./test/lambda_api_test.zsh --username testuser --password Password123!
+lambda_api_test.zsh --username testuser --password Password123!
 
 # Execute specific test only
-./test/lambda_api_test.zsh --username testuser --password Password123! test_health_check
+lambda_api_test.zsh --username testuser --password Password123! test_health_check
 ```
 
 #### Overview
@@ -168,8 +168,8 @@ To ensure test scripts work properly, specific authentication flows must be enab
 
 #### Execution Method
 ```bash
-cd vto-app/lambda
-./test/local_vto_test.zsh
+cd vto-app/lambda/test/
+local_vto_test.zsh
 ```
 
 #### Overview
@@ -196,8 +196,8 @@ cd vto-app/lambda
 
 #### Execution Method
 ```bash
-cd vto-app/lambda
-./test/lambda_vto_test.zsh
+cd vto-app/lambda/test/
+lambda_vto_test.zsh
 ```
 
 #### Overview
@@ -453,10 +453,10 @@ cd vto-app/lambda
 cd vto-app/lambda/test
 
 # API local test
-./local_api_test.zsh
+local_api_test.zsh
 
 # Lambda local test  
-./local_vto_test.zsh
+local_vto_test.zsh
 
 # 2. CDK deployment
 cd ../cdk
@@ -466,10 +466,10 @@ npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
 cd ../test
 
 # API remote test
-./lambda_api_test.zsh
+lambda_api_test.zsh
 
 # Lambda remote test
-./lambda_vto_test.zsh
+lambda_vto_test.zsh
 ```
 
 ### Individual Test Execution

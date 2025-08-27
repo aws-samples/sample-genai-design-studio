@@ -2,10 +2,6 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
-import i18n from '../i18n'
-
-// Initialize i18n for testing
-i18n
 
 // Cleanup after each test case
 afterEach(() => {

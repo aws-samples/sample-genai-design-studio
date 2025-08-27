@@ -3,17 +3,21 @@ import { z } from 'zod';
 // Valid dimensions for Nova models
 // Based on all dimensions used in IMAGE_SIZE_PRESETS
 const VALID_DIMENSIONS = [
-  256, 336, 512, 576, 627, 672, 720, 768, 816, 
-  1024, 1168, 1280, 1440, 1520, 1536, 1664, 1792, 
+  256, 336, 512, 576, 627, 672, 720, 768, 816,
+  1024, 1168, 1280, 1440, 1520, 1536, 1664, 1792,
   1824, 2048, 2288, 2512, 2720, 2896, 3536, 4096
 ];
 
-// Image validation constants
+// Image validation constants based on Amazon Nova Canvas specifications
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_PIXELS = 4200000; // 4.2 million pixels
+const MAX_PIXELS = 4194304; // 4,194,304 pixels (exactly as specified)
+const MIN_DIMENSION = 320; // Minimum side length
+const MAX_DIMENSION = 4096; // Maximum side length
+const MIN_ASPECT_RATIO = 1 / 4; // 1:4 ratio
+const MAX_ASPECT_RATIO = 4 / 1; // 4:1 ratio
 
-// Image file validation
+// Image file validation based on Amazon Nova Canvas specifications
 export const imageFileSchema = z.custom<File>((file) => file instanceof File, {
   message: 'ファイルを選択してください',
 }).refine((file) => {
@@ -27,25 +31,103 @@ export const imageFileSchema = z.custom<File>((file) => file instanceof File, {
   message: `画像ファイルのMIMEタイプは ${ALLOWED_MIME_TYPES.join(', ')} のいずれかである必要があります`,
 });
 
-// Async image resolution validation
+// Async image resolution validation based on Amazon Nova Canvas specifications
 export const validateImageResolution = async (file: File): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
-    
+
     reader.onload = (e) => {
       img.onload = () => {
-        const pixels = img.width * img.height;
+        const { width, height } = img;
+        const pixels = width * height;
+        const aspectRatio = width / height;
+
+        // Check minimum and maximum dimensions
+        if (width < MIN_DIMENSION || height < MIN_DIMENSION) {
+          reject(new Error(`画像の各辺は${MIN_DIMENSION}ピクセル以上である必要があります。現在: ${width}x${height}`));
+          return;
+        }
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          reject(new Error(`画像の各辺は${MAX_DIMENSION}ピクセル以下である必要があります。現在: ${width}x${height}`));
+          return;
+        }
+
+        // Check total pixel count
         if (pixels > MAX_PIXELS) {
-          reject(new Error(`画像の解像度が最大値（${MAX_PIXELS.toLocaleString()}ピクセル）を超えています。現在: ${pixels.toLocaleString()}ピクセル`));
-        } else {
+          reject(new Error(`画像の総ピクセル数が最大値（${MAX_PIXELS.toLocaleString()}ピクセル）を超えています。現在: ${pixels.toLocaleString()}ピクセル`));
+          return;
+        }
+
+        // Check aspect ratio (1:4 to 4:1)
+        if (aspectRatio < MIN_ASPECT_RATIO || aspectRatio > MAX_ASPECT_RATIO) {
+          reject(new Error(`画像のアスペクト比は1:4から4:1の範囲内である必要があります。現在: ${aspectRatio.toFixed(2)}:1`));
+          return;
+        }
+
+        resolve(true);
+      };
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
+    reader.readAsDataURL(file);
+  });
+};
+
+// Mask image validation - basic validation only (same as regular images)
+export const validateMaskImage = async (file: File): Promise<boolean> => {
+  // For mask images, just use the same validation as regular images
+  // No need for strict black/white pixel validation
+  return validateImageResolution(file);
+};
+
+// Check if image has 8 bits per color channel (RGB)
+export const validateImageColorDepth = async (file: File): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context の取得に失敗しました'));
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        try {
+          // For PNG and WebP images, check if alpha channel has transparent pixels
+          if (file.type === 'image/png' || file.type === 'image/webp') {
+            const imageData = ctx.getImageData(0, 0, img.width, img.height);
+            const data = imageData.data;
+
+            for (let i = 3; i < data.length; i += 4) { // Check alpha channel
+              const alpha = data[i];
+              if (alpha > 0 && alpha < 255) {
+                const imageType = file.type === 'image/png' ? 'PNG' : 'WebP';
+                reject(new Error(`${imageType}画像のアルファチャンネルに透明または半透明のピクセルが含まれています。完全に不透明（アルファ値255）または完全に透明（アルファ値0）のピクセルのみ使用できます。`));
+                return;
+              }
+            }
+          }
+
           resolve(true);
+        } catch (error) {
+          reject(new Error('画像の色深度検証に失敗しました'));
         }
       };
       img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
       img.src = e.target?.result as string;
     };
-    
+
     reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
     reader.readAsDataURL(file);
   });
@@ -65,7 +147,7 @@ export const novaVTORequestSchema = z.object({
   mask_image_object_name: z.string().optional(),
   mask_type: z.enum(['GARMENT', 'IMAGE', 'PROMPT']).default('GARMENT'),
   mask_prompt: z.string().optional().default(''),
-  garment_class: z.enum(['UPPER_BODY', 'LOWER_BODY', 'FULL_BODY', 'SHOES']).default('UPPER_BODY'),
+  garment_class: z.enum(['UPPER_BODY', 'LOWER_BODY', 'FULL_BODY', 'FOOTWEAR', 'LONG_SLEEVE_SHIRT', 'SHORT_SLEEVE_SHIRT', 'NO_SLEEVE_SHIRT', 'OTHER_UPPER_BODY', 'LONG_PANTS', 'SHORT_PANTS', 'OTHER_LOWER_BODY', 'LONG_DRESS', 'SHORT_DRESS', 'FULL_BODY_OUTFIT', 'OTHER_FULL_BODY', 'SHOES', 'BOOTS', 'OTHER_FOOTWEAR']).default('UPPER_BODY'),
   long_sleeve_style: z.string().optional(),
   tucking_style: z.string().optional(),
   outer_layer_style: z.string().optional(),

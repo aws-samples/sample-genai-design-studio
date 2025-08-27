@@ -4,15 +4,15 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { useDropzone } from 'react-dropzone';
 import type { ImageUploadProps } from '../types';
-import { imageFileSchema, validateImageResolution } from '../utils/validation';
+import { imageFileSchema, validateImageResolution, validateImageColorDepth } from '../utils/validation';
 import { pasteImageFromClipboard, isClipboardSupported } from '../utils/clipboard';
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ 
-  label, 
-  onImageUpload, 
-  uploadedImage, 
+const ImageUpload: React.FC<ImageUploadProps> = ({
+  label,
+  onImageUpload,
+  uploadedImage,
   height = 512,
-  allowMask = false 
+  allowMask = false
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -21,14 +21,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const validateAndUploadImage = async (file: File) => {
     setError(null);
-    
+
     try {
       // Validate file format and MIME type
       imageFileSchema.parse(file);
-      
-      // Validate image resolution
+
+      // Validate image color depth (8 bits per channel, no transparent pixels in PNG alpha)
+      await validateImageColorDepth(file);
+
+      // Validate image resolution and dimensions
       await validateImageResolution(file);
-      
+
       // If all validations pass, upload the image
       onImageUpload(file);
     } catch (err) {
@@ -143,7 +146,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               {isDragActive ? '画像をここにドロップ' : `${label}をアップロード`}
             </Typography>
             <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-              Image: JPEG, PNG, WebP / lower than 4.2M Pixel
+              {
+              'Image: JPEG, PNG, WebP / 320-4096px / Max 4.19M pixels / 8-bit RGB'
+              }
             </Typography>
             {allowMask && (
               <Typography variant="caption" color="textSecondary">
@@ -153,7 +158,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </Box>
         )}
       </Paper>
-      
+
       {/* Snackbar for paste feedback */}
       <Snackbar
         open={snackbarOpen}
