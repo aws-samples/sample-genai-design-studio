@@ -67,6 +67,7 @@ export interface VTOState {
   autoClassificationEnabled: boolean;
   isClassifying: boolean;
   classificationError: string | null;
+  classificationSuccess: string | null;
   
   // Loading states
   isLoading: boolean;

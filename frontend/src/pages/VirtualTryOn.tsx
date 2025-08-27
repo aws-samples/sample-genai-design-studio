@@ -198,13 +198,12 @@ const VirtualTryOn: React.FC = () => {
         const userId = user?.userId || 'default_user';
         
         const result = await classifyGarmentImage(file, groupId, userId);
-        console.log('🔍 Classification API response:', result);
+        console.log('🔍 Classification hook response:', result);
         
-        // 新しいレスポンス構造に対応
-        if (result && result.classification_result && result.classification_result.success && result.classification_result.result) {
-          const classificationData = result.classification_result.result;
-          const garmentClass = classificationData.category_name;
-          const confidence = classificationData.confidence;
+        // useGarmentClassificationフックは既に変換済みの結果を返す
+        if (result && result.garmentClass) {
+          const garmentClass = result.garmentClass;
+          const confidence = result.confidence;
           
           // 判定されたgarmentClassを設定
           setVTOParameters({ garmentClass: garmentClass });

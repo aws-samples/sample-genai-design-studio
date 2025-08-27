@@ -126,6 +126,7 @@ interface AppStore extends AppState {
   setVTOClassificationState: (state: {
     isClassifying?: boolean;
     classificationError?: string | null;
+    classificationSuccess?: string | null;
   }) => void;
   resetVTO: () => void;
 
