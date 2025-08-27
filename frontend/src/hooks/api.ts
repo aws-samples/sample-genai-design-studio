@@ -193,7 +193,7 @@ export const processNovaVTO = async (params: {
       return_mask: params.returnMask || false,
       number_of_images: params.numberOfImages || 1,
       quality: params.quality || 'standard',
-      cfg_scale: params.cfgScale || 3.0,
+      cfg_scale: params.cfgScale || 6.5,
       seed: params.seed || -1,
     });
     return response.data;
@@ -228,7 +228,7 @@ export const processNovaModel = async (params: {
       object_names: params.objectNames,
       prompt: params.prompt,
       model_id: params.modelId || 'amazon.nova-canvas-v1:0',
-      cfg_scale: params.cfgScale || 8.0,
+      cfg_scale: params.cfgScale || 6.5,
       height: params.height || 1024,
       width: params.width || 1024,
       number_of_images: params.numberOfImages || 1,
@@ -273,7 +273,7 @@ export const processBackgroundReplacement = async (params: {
       mask_image_object_name: params.maskImageObjectName,
       model_id: params.modelId || 'amazon.nova-canvas-v1:0',
       outPaintingMode: params.outPaintingMode || 'DEFAULT',
-      cfg_scale: params.cfgScale || 5.0,
+      cfg_scale: params.cfgScale || 6.5,
       number_of_images: params.numberOfImages || 1,
       height: params.height || 512,
       width: params.width || 512,

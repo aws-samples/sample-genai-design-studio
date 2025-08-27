@@ -319,7 +319,7 @@ describe('API hooks', () => {
       expect(callArgs.garment_class).toBe('UPPER_BODY')
       expect(callArgs.number_of_images).toBe(1)
       expect(callArgs.quality).toBe('standard')
-      expect(callArgs.cfg_scale).toBe(3.0)
+      expect(callArgs.cfg_scale).toBe(6.5)
       expect(callArgs.seed).toBe(-1)
     })
   })
@@ -385,7 +385,7 @@ describe('API hooks', () => {
 
       const callArgs = mockApiClient.post.mock.calls[0][1]
       expect(callArgs.model_id).toBe('amazon.nova-canvas-v1:0')
-      expect(callArgs.cfg_scale).toBe(8.0)
+      expect(callArgs.cfg_scale).toBe(6.5) // change 8.0 to 6.5
       expect(callArgs.height).toBe(1024)
       expect(callArgs.width).toBe(1024)
       expect(callArgs.number_of_images).toBe(1)

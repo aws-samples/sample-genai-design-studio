@@ -336,7 +336,7 @@ const BackgroundReplacement: React.FC = () => {
 
                 {/* CFG Scale */}
                 <Box>
-                  <Typography gutterBottom>CFG Scale (default: 6.5)</Typography>
+                  <Typography gutterBottom>{t('backgroundReplacement.cfgScale')}: {cfgScale}</Typography>
                   <Slider
                     value={cfgScale}
                     onChange={(_, value) => setBackgroundParameters({ cfgScale: value as number })}

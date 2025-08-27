@@ -29,7 +29,7 @@ const defaultVTOParameters: VTOParameters = {
   returnMask: false,
   numberOfImages: 1,
   quality: 'standard',
-  cfgScale: 3.0,
+  cfgScale: 6.5, // default value: 6.5
   seed: -1,
 };
 
@@ -37,7 +37,7 @@ const defaultVTOParameters: VTOParameters = {
 const defaultModelGenerationParameters: ModelGenerationParameters = {
   prompt: '',
   modelId: 'amazon.nova-canvas-v1:0',
-  cfgScale: 8.0,
+  cfgScale: 6.5,
   height: 1024,
   width: 1024,
   numberOfImages: 1,
