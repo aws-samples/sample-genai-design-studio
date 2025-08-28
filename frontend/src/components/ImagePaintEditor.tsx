@@ -9,6 +9,10 @@ import {
   Stack,
   IconButton,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import BrushIcon from '@mui/icons-material/Brush';
 import EraseIcon from '@mui/icons-material/Clear';
@@ -17,6 +21,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CropFreeIcon from '@mui/icons-material/CropFree';
+import PaletteIcon from '@mui/icons-material/Palette';
 
 interface ImagePaintEditorProps {
   imageUrl: string;
@@ -40,7 +45,8 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const paintCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(25);
-  const [brushColor] = useState('#000000');
+  const [brushColor, setBrushColor] = useState('#FF0000');
+  const [maskOpacity, setMaskOpacity] = useState(0.7);
   const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle'>('brush');
   const [isSelectingRect, setIsSelectingRect] = useState(false);
   const [rectStart, setRectStart] = useState<{x: number; y: number} | null>(null);
@@ -51,6 +57,19 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   // Store original image dimensions
   const [originalImageSize, setOriginalImageSize] = useState<{width: number; height: number}>({width: 0, height: 0});
   const [imagePosition, setImagePosition] = useState<{x: number; y: number; scale: number}>({x: 0, y: 0, scale: 1});
+
+  // Predefined mask colors
+  const maskColors = [
+    { name: 'Red', value: '#FF0000' },
+    { name: 'Green', value: '#00FF00' },
+    { name: 'Blue', value: '#0000FF' },
+    { name: 'Yellow', value: '#FFFF00' },
+    { name: 'Magenta', value: '#FF00FF' },
+    { name: 'Cyan', value: '#00FFFF' },
+    { name: 'Orange', value: '#FF8000' },
+    { name: 'Purple', value: '#8000FF' },
+    { name: 'Black', value: '#000000' },
+  ];
 
   // Load image onto base canvas
   useEffect(() => {
@@ -107,6 +126,44 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     setHistory(newHistory);
     setHistoryStep(newHistory.length - 1);
   }, [history, historyStep]);
+
+  // Change all existing mask colors when brush color changes
+  const changeMaskColor = useCallback((newColor: string) => {
+    const paintCanvas = paintCanvasRef.current;
+    if (!paintCanvas) return;
+
+    const paintCtx = paintCanvas.getContext('2d');
+    if (!paintCtx) return;
+
+    const imageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+    const data = imageData.data;
+
+    // Convert hex color to RGB
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    };
+
+    const newRgb = hexToRgb(newColor);
+    if (!newRgb) return;
+
+    // Change color of all non-transparent pixels
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] > 0) { // If pixel is not transparent
+        data[i] = newRgb.r;     // Red
+        data[i + 1] = newRgb.g; // Green
+        data[i + 2] = newRgb.b; // Blue
+        // Keep original alpha value
+      }
+    }
+
+    paintCtx.putImageData(imageData, 0, 0);
+    saveToHistory();
+  }, [saveToHistory]);
 
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const paintCanvas = paintCanvasRef.current;
@@ -371,6 +428,38 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
           {/* Brush Settings and Action Buttons */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
+            {/* Mask Color Selection */}
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Mask Color</InputLabel>
+              <Select
+                value={brushColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setBrushColor(newColor);
+                  changeMaskColor(newColor);
+                }}
+                label="Mask Color"
+                startAdornment={<PaletteIcon sx={{ mr: 1, color: brushColor }} />}
+              >
+                {maskColors.map((color) => (
+                  <MenuItem key={color.value} value={color.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          backgroundColor: color.value,
+                          border: '1px solid #ccc',
+                          borderRadius: 1,
+                        }}
+                      />
+                      {color.name}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <Typography variant="body2" sx={{ minWidth: 80 }}>
               Brush Size:
             </Typography>
@@ -383,6 +472,21 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
               valueLabelDisplay="auto"
             />
             <Typography variant="body2">{brushSize}px</Typography>
+
+            <Typography variant="body2" sx={{ minWidth: 80 }}>
+              Opacity:
+            </Typography>
+            <Slider
+              value={maskOpacity}
+              onChange={(_, value) => setMaskOpacity(value as number)}
+              min={0.1}
+              max={1}
+              step={0.1}
+              sx={{ width: 120 }}
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+            />
+            <Typography variant="body2">{Math.round(maskOpacity * 100)}%</Typography>
             
             {/* Action Buttons */}
             <Tooltip title="Undo">
@@ -451,6 +555,7 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
             border: '1px solid #ccc',
             cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : 'grab',
             zIndex: 2,
+            opacity: maskOpacity,
           }}
         />
         {/* Rectangle selection overlay */}
