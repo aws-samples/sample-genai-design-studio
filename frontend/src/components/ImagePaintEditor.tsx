@@ -22,6 +22,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CropFreeIcon from '@mui/icons-material/CropFree';
 import PaletteIcon from '@mui/icons-material/Palette';
+import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
+import FloodFill from 'q-floodfill';
 
 interface ImagePaintEditorProps {
   imageUrl: string;
@@ -47,7 +49,7 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const [brushSize, setBrushSize] = useState(25);
   const [brushColor, setBrushColor] = useState('#FF0000');
   const [maskOpacity, setMaskOpacity] = useState(0.7);
-  const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle'>('brush');
+  const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle' | 'fill'>('brush');
   const [isSelectingRect, setIsSelectingRect] = useState(false);
   const [rectStart, setRectStart] = useState<{x: number; y: number} | null>(null);
   const [rectEnd, setRectEnd] = useState<{x: number; y: number} | null>(null);
@@ -165,6 +167,30 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     saveToHistory();
   }, [saveToHistory]);
 
+  // Flood fill using q-floodfill library
+  const handleFloodFill = useCallback((startX: number, startY: number) => {
+    const paintCanvas = paintCanvasRef.current;
+    if (!paintCanvas) return;
+
+    const paintCtx = paintCanvas.getContext('2d');
+    if (!paintCtx) return;
+
+    // Round coordinates to integers
+    const x = Math.floor(startX);
+    const y = Math.floor(startY);
+
+    // Boundary check
+    if (x < 0 || x >= paintCanvas.width || y < 0 || y >= paintCanvas.height) return;
+
+    const imageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+    
+    const floodFill = new FloodFill(imageData);
+    floodFill.fill(brushColor, x, y, 0);
+
+    paintCtx.putImageData(imageData, 0, 0);
+    saveToHistory();
+  }, [brushColor, saveToHistory]);
+
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const paintCanvas = paintCanvasRef.current;
     if (!paintCanvas) return { x: 0, y: 0 };
@@ -178,6 +204,11 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pos = getMousePos(e);
+    
+    if (tool === 'fill') {
+      handleFloodFill(pos.x, pos.y);
+      return;
+    }
     
     if (tool === 'rectangle') {
       setIsSelectingRect(true);
@@ -418,16 +449,20 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
               Rectangle
             </Button>
             <Button
+              startIcon={<FormatColorFillIcon />}
+              variant={tool === 'fill' ? 'contained' : 'outlined'}
+              onClick={() => setTool('fill')}
+            >
+              Fill
+            </Button>
+            <Button
               startIcon={<EraseIcon />}
               variant={tool === 'eraser' ? 'contained' : 'outlined'}
               onClick={() => setTool('eraser')}
             >
               Eraser
             </Button>
-          </ButtonGroup>
 
-          {/* Brush Settings and Action Buttons */}
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
             {/* Mask Color Selection */}
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Mask Color</InputLabel>
@@ -459,36 +494,45 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
                 ))}
               </Select>
             </FormControl>
+          </ButtonGroup>
 
-            <Typography variant="body2" sx={{ minWidth: 80 }}>
-              Brush Size:
-            </Typography>
-            <Slider
-              value={brushSize}
-              onChange={(_, value) => setBrushSize(value as number)}
-              min={1}
-              max={50}
-              sx={{ width: 120 }}
-              valueLabelDisplay="auto"
-            />
-            <Typography variant="body2">{brushSize}px</Typography>
+          {/* Brush Size and Opacity - Vertical Layout */}
+          <Stack direction="column" spacing={1}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body2" sx={{ minWidth: 80 }}>
+                Brush Size:
+              </Typography>
+              <Slider
+                value={brushSize}
+                onChange={(_, value) => setBrushSize(value as number)}
+                min={1}
+                max={50}
+                sx={{ width: 120 }}
+                valueLabelDisplay="auto"
+              />
+              <Typography variant="body2">{brushSize}px</Typography>
+            </Stack>
 
-            <Typography variant="body2" sx={{ minWidth: 80 }}>
-              Opacity:
-            </Typography>
-            <Slider
-              value={maskOpacity}
-              onChange={(_, value) => setMaskOpacity(value as number)}
-              min={0.1}
-              max={1}
-              step={0.1}
-              sx={{ width: 120 }}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-            />
-            <Typography variant="body2">{Math.round(maskOpacity * 100)}%</Typography>
-            
-            {/* Action Buttons */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body2" sx={{ minWidth: 80 }}>
+                Opacity:
+              </Typography>
+              <Slider
+                value={maskOpacity}
+                onChange={(_, value) => setMaskOpacity(value as number)}
+                min={0.1}
+                max={1}
+                step={0.1}
+                sx={{ width: 120 }}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+              />
+              <Typography variant="body2">{Math.round(maskOpacity * 100)}%</Typography>
+            </Stack>
+          </Stack>
+
+          {/* Action Buttons */}
+          <Stack direction="row" spacing={1} alignItems="center">
             <Tooltip title="Undo">
               <IconButton
                 onClick={undo}
@@ -553,7 +597,7 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
             top: 0,
             left: 0,
             border: '1px solid #ccc',
-            cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : 'grab',
+            cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : tool === 'fill' ? 'pointer' : 'grab',
             zIndex: 2,
             opacity: maskOpacity,
           }}
