@@ -167,6 +167,65 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     saveToHistory();
   }, [saveToHistory]);
 
+  // Median filter for noise reduction
+  const medianFilter = useCallback((imageData: ImageData) => {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    const newData = new Uint8ClampedArray(data);
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const centerIndex = (y * width + x) * 4;
+        
+        // Collect alpha values from 3x3 neighborhood
+        const alphaValues = [];
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const neighborIndex = ((y + dy) * width + (x + dx)) * 4;
+            alphaValues.push(data[neighborIndex + 3]);
+          }
+        }
+        
+        // Sort and get median
+        alphaValues.sort((a, b) => a - b);
+        const medianAlpha = alphaValues[4]; // Middle value of 9 elements
+        
+        // Apply median alpha value
+        if (medianAlpha > 0) {
+          // If median is opaque, use current brush color
+          const hexToRgb = (hex: string) => {
+            const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return match ? [
+              parseInt(match[1], 16),
+              parseInt(match[2], 16),
+              parseInt(match[3], 16)
+            ] : [255, 0, 0];
+          };
+          
+          const [r, g, b] = hexToRgb(brushColor);
+          newData[centerIndex] = r;
+          newData[centerIndex + 1] = g;
+          newData[centerIndex + 2] = b;
+          newData[centerIndex + 3] = 255;
+        } else {
+          // If median is transparent, make pixel transparent
+          newData[centerIndex] = 0;
+          newData[centerIndex + 1] = 0;
+          newData[centerIndex + 2] = 0;
+          newData[centerIndex + 3] = 0;
+        }
+      }
+    }
+    
+    // Copy result back to original data
+    for (let i = 0; i < data.length; i++) {
+      data[i] = newData[i];
+    }
+    
+    return imageData;
+  }, [brushColor]);
+
   // Flood fill using q-floodfill library
   const handleFloodFill = useCallback((startX: number, startY: number) => {
     const paintCanvas = paintCanvasRef.current;
@@ -187,9 +246,12 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     const floodFill = new FloodFill(imageData);
     floodFill.fill(brushColor, x, y, 0);
 
+    // Apply median filter to reduce noise
+    medianFilter(imageData);
+
     paintCtx.putImageData(imageData, 0, 0);
     saveToHistory();
-  }, [brushColor, saveToHistory]);
+  }, [brushColor, medianFilter, saveToHistory]);
 
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const paintCanvas = paintCanvasRef.current;
