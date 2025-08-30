@@ -66,6 +66,10 @@ const defaultVTOState: VTOState = {
   generatedImages: [],
   selectedImageIndex: 0,
   parameters: defaultVTOParameters,
+  autoClassificationEnabled: true, // バックエンド実装完了により有効化
+  isClassifying: false,
+  classificationError: null,
+  classificationSuccess: null,
   isLoading: false,
   uploadProgress: false,
   processingProgress: false,
@@ -117,6 +121,12 @@ interface AppStore extends AppState {
     processingProgress?: boolean;
     downloadProgress?: boolean;
     error?: string | null;
+  }) => void;
+  setVTOAutoClassificationEnabled: (enabled: boolean) => void;
+  setVTOClassificationState: (state: {
+    isClassifying?: boolean;
+    classificationError?: string | null;
+    classificationSuccess?: string | null;
   }) => void;
   resetVTO: () => void;
 
@@ -219,6 +229,22 @@ export const useAppStore = create<AppStore>((set, _get) => ({
       vto: {
         ...state.vto,
         ...loading,
+      },
+    })),
+
+  setVTOAutoClassificationEnabled: (enabled) =>
+    set((state) => ({
+      vto: {
+        ...state.vto,
+        autoClassificationEnabled: enabled,
+      },
+    })),
+
+  setVTOClassificationState: (classificationState) =>
+    set((state) => ({
+      vto: {
+        ...state.vto,
+        ...classificationState,
       },
     })),
 

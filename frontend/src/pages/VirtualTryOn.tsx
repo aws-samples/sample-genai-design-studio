@@ -20,12 +20,15 @@ import {
   Slider,
   Alert,
   IconButton,
+  Switch,
+  CircularProgress,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ClearIcon from '@mui/icons-material/Clear';
 import ImageUpload from '../components/ImageUpload';
 import ImageDisplay from '../components/ImageDisplay';
 import MaskCreator from '../components/MaskCreator';
+import { useAuth } from '../contexts/AuthContext';
 import {
   generateObjectNames,
   getPresignedUploadUrl,
@@ -35,8 +38,8 @@ import {
   processNovaVTO,
 } from '../hooks/api';
 import { validateNovaVTORequest, getValidationErrors } from '../utils/validation';
-import { useAuth } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
+import { useGarmentClassification } from '../hooks/useGarmentClassification';
 
 // Garment categories structure
 const garmentCategories = {
@@ -127,6 +130,10 @@ const VirtualTryOn: React.FC = () => {
         cfgScale,
         seed,
       },
+      autoClassificationEnabled,
+      isClassifying,
+      classificationError,
+      classificationSuccess,
       isLoading,
       uploadProgress,
       processingProgress,
@@ -140,7 +147,12 @@ const VirtualTryOn: React.FC = () => {
     setVTOSelectedImageIndex,
     setVTOParameters,
     setVTOLoadingState,
+    setVTOAutoClassificationEnabled,
+    setVTOClassificationState,
   } = useAppStore();
+
+  // Garment Classification Hook
+  const { classifyGarmentImage } = useGarmentClassification();
 
   // Initialize main category based on current garment class
   useEffect(() => {
@@ -172,9 +184,53 @@ const VirtualTryOn: React.FC = () => {
     setVTOParameters({ maskType: 'IMAGE' });
   };
 
-  const handleGarmentImageUpload = (file: File) => {
+  const handleGarmentImageUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
     setVTOGarmentImage(file, url);
+
+    // 自動判定が有効な場合、garment classificationを実行
+    if (autoClassificationEnabled) {
+      setVTOClassificationState({ isClassifying: true, classificationError: null, classificationSuccess: null });
+      
+      try {
+        // Use authenticated user info or fallback to defaults
+        const groupId = user?.userId || 'default_group';
+        const userId = user?.userId || 'default_user';
+        
+        const result = await classifyGarmentImage(file, groupId, userId);
+        console.log('🔍 Classification hook response:', result);
+        
+        // useGarmentClassificationフックは既に変換済みの結果を返す
+        if (result && result.garmentClass) {
+          const garmentClass = result.garmentClass;
+          const confidence = result.confidence;
+          
+          // 判定されたgarmentClassを設定
+          setVTOParameters({ garmentClass: garmentClass });
+          
+          // メインカテゴリも更新
+          const category = getMainCategoryFromGarmentClass(garmentClass);
+          setMainCategory(category);
+          
+          // 成功メッセージを画面に表示
+          setVTOClassificationState({ 
+            classificationSuccess: `Auto-classified as: ${garmentClass}${confidence ? ` (confidence: ${Math.round(confidence * 100)}%)` : ''}`,
+            classificationError: null
+          });
+        } else {
+          setVTOClassificationState({ 
+            classificationError: 'Auto classification failed to determine garment type. Please select manually.' 
+          });
+        }
+      } catch (error) {
+        console.error('Auto classification failed:', error);
+        setVTOClassificationState({ 
+          classificationError: 'Auto classification service is currently unavailable. Please select garment class manually.' 
+        });
+      } finally {
+        setVTOClassificationState({ isClassifying: false });
+      }
+    }
   };
 
   const handleMaskImageUpload = (file: File) => {
@@ -411,11 +467,65 @@ const VirtualTryOn: React.FC = () => {
               <Typography variant="h6">{t('virtualTryOn.garmentImage')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <ImageUpload
-                label={t('virtualTryOn.garmentImage')}
-                onImageUpload={handleGarmentImageUpload}
-                uploadedImage={garmentImage}
-              />
+              <Stack spacing={2}>
+                {/* Auto Classification Toggle */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="body2">
+                      Auto select garment class
+                    </Typography>
+                    <Switch
+                      checked={autoClassificationEnabled}
+                      onChange={(e) => setVTOAutoClassificationEnabled(e.target.checked)}
+                      size="small"
+                    />
+                  </Box>
+                  
+                  {/* 説明文 */}
+                  <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+                    {autoClassificationEnabled 
+                      ? "Automatically detects garment type when image is uploaded"
+                      : "Manual garment class selection required"
+                    }
+                  </Typography>
+                </Box>
+                
+                {/* Classification Status */}
+                {isClassifying && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="textSecondary">
+                      Classifying garment...
+                    </Typography>
+                  </Box>
+                )}
+                
+                {classificationError && (
+                  <Alert 
+                    severity="warning" 
+                    onClose={() => setVTOClassificationState({ classificationError: null })}
+                    sx={{ fontSize: '0.875rem' }}
+                  >
+                    {classificationError}
+                  </Alert>
+                )}
+
+                {classificationSuccess && (
+                  <Alert 
+                    severity="info" 
+                    onClose={() => setVTOClassificationState({ classificationSuccess: null })}
+                    sx={{ fontSize: '0.875rem' }}
+                  >
+                    {classificationSuccess}
+                  </Alert>
+                )}
+
+                <ImageUpload
+                  label={t('virtualTryOn.garmentImage')}
+                  onImageUpload={handleGarmentImageUpload}
+                  uploadedImage={garmentImage}
+                />
+              </Stack>
             </AccordionDetails>
           </Accordion>
 

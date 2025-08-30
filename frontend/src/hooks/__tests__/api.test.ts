@@ -8,7 +8,8 @@ import {
   downloadImageFromS3,
   processNovaVTO,
   processNovaModel,
-  downloadFromS3
+  downloadFromS3,
+  classifyGarment
 } from '../api'
 
 // Environment variables are loaded from .env.test file automatically by Vitest
@@ -404,10 +405,95 @@ describe('API hooks', () => {
       expect(mockApiClient.get).toHaveBeenCalledWith('/utils/get/data', {
         params: {
           object_name: 'test-object.jpg',
-          bucket_name: import.meta.env.VITE_VTO_BUCKET,
+          bucket_name: 'vto-app-local', // Use the correct default value from api.ts
         },
       })
       expect(result).toEqual(mockResponse.data)
+    })
+  })
+
+  describe('classifyGarment', () => {
+    it('calls the correct endpoint with form data', async () => {
+      const mockResponse = {
+        data: {
+          classification_result: {
+            success: true,
+            result: {
+              category_name: 'UPPER_BODY',
+              confidence: 0.95
+            }
+          }
+        }
+      }
+      mockApiClient.post.mockResolvedValue(mockResponse)
+
+      // Mock FileReader
+      const mockBase64 = 'dGVzdA=='
+      const mockFileReader = {
+        readAsDataURL: vi.fn(),
+        onload: null as any,
+        onerror: null as any,
+        result: `data:image/jpeg;base64,${mockBase64}`,
+      }
+      
+      vi.stubGlobal('FileReader', vi.fn(() => mockFileReader))
+
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      
+      const promise = classifyGarment(mockFile)
+      
+      // Simulate successful FileReader
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload()
+        }
+      }, 0)
+      
+      const result = await promise
+
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/vto/classify-garment',
+        {
+          group_id: 'default_group',
+          user_id: 'default_user',
+          image_base64: mockBase64
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      expect(result).toEqual(mockResponse.data)
+    })
+
+    it('throws error when API call fails', async () => {
+      const mockError = new Error('Classification failed')
+      mockApiClient.post.mockRejectedValue(mockError)
+
+      // Mock FileReader
+      const mockBase64 = 'dGVzdA=='
+      const mockFileReader = {
+        readAsDataURL: vi.fn(),
+        onload: null as any,
+        onerror: null as any,
+        result: `data:image/jpeg;base64,${mockBase64}`,
+      }
+      
+      vi.stubGlobal('FileReader', vi.fn(() => mockFileReader))
+
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      
+      const promise = classifyGarment(mockFile)
+      
+      // Simulate successful FileReader
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload()
+        }
+      }, 0)
+
+      await expect(promise).rejects.toThrow('Classification failed')
     })
   })
 })

@@ -285,6 +285,50 @@ export const processBackgroundReplacement = async (params: {
   }
 };
 
+// Garment Classification APIを呼び出す
+export const classifyGarment = async (file: File, groupId?: string, userId?: string) => {
+  try {
+    console.log('📡 Calling classify-garment API with file:', file.name, 'Size:', file.size, 'Type:', file.type);
+    
+    // Convert file to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data:image/...;base64, prefix
+        const base64Data = result.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    // Use provided IDs or fallback to defaults
+    const group_id = groupId || 'default_group';
+    const user_id = userId || 'default_user';
+    
+    const requestBody = {
+      group_id,
+      user_id,
+      image_base64: base64
+    };
+    
+    console.log('📤 Sending POST request to /vto/classify-garment with body keys:', Object.keys(requestBody));
+    
+    const response = await apiClient.post('/vto/classify-garment', requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    console.log('📥 Received response:', response.status, response.data);
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Error classifying garment:', error);
+    throw error;
+  }
+};
+
 // S3からデータをダウンロードする (レガシーメソッド - 互換性のために残す)
 export const downloadFromS3 = async (objectName: string) => {
   try {
