@@ -2,8 +2,8 @@
 
 ## Prerequisites
 ### Bedrock
-Enable Nova models in one of the following regions: us-east-1, ap-northeast-1, or eu-west-1. This sample uses Nova Canvas image generation models (only available in us-east-1, ap-northeast-1, and eu-west-1) and Nova Micro/Lite text models.
-Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access`, check the entire Nova model family, and click `Save changes`.
+Enable Nova models and Claude Haiku 3 in one of the following regions: us-east-1, ap-northeast-1, or eu-west-1. This sample uses Nova Canvas image generation models (only available in us-east-1, ap-northeast-1, and eu-west-1), Nova Micro/Lite text models, and Claude Haiku 3.
+Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access`, check the entire Nova model family and Claude Haiku 3, and click `Save changes`.
 
 ### CDK Execution Environment
 To deploy CDK projects, the following environment is required. Please set up the environment in advance.
