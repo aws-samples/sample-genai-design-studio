@@ -9,6 +9,10 @@ import {
   Stack,
   IconButton,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import BrushIcon from '@mui/icons-material/Brush';
 import EraseIcon from '@mui/icons-material/Clear';
@@ -17,6 +21,9 @@ import RedoIcon from '@mui/icons-material/Redo';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CropFreeIcon from '@mui/icons-material/CropFree';
+import PaletteIcon from '@mui/icons-material/Palette';
+import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
+import FloodFill from 'q-floodfill';
 
 interface ImagePaintEditorProps {
   imageUrl: string;
@@ -40,8 +47,9 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   const paintCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(25);
-  const [brushColor] = useState('#000000');
-  const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle'>('brush');
+  const [brushColor, setBrushColor] = useState('#FF0000');
+  const [maskOpacity, setMaskOpacity] = useState(0.7);
+  const [tool, setTool] = useState<'brush' | 'eraser' | 'rectangle' | 'fill'>('brush');
   const [isSelectingRect, setIsSelectingRect] = useState(false);
   const [rectStart, setRectStart] = useState<{x: number; y: number} | null>(null);
   const [rectEnd, setRectEnd] = useState<{x: number; y: number} | null>(null);
@@ -51,6 +59,19 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
   // Store original image dimensions
   const [originalImageSize, setOriginalImageSize] = useState<{width: number; height: number}>({width: 0, height: 0});
   const [imagePosition, setImagePosition] = useState<{x: number; y: number; scale: number}>({x: 0, y: 0, scale: 1});
+
+  // Predefined mask colors
+  const maskColors = [
+    { name: 'Red', value: '#FF0000' },
+    { name: 'Green', value: '#00FF00' },
+    { name: 'Blue', value: '#0000FF' },
+    { name: 'Yellow', value: '#FFFF00' },
+    { name: 'Magenta', value: '#FF00FF' },
+    { name: 'Cyan', value: '#00FFFF' },
+    { name: 'Orange', value: '#FF8000' },
+    { name: 'Purple', value: '#8000FF' },
+    { name: 'Black', value: '#000000' },
+  ];
 
   // Load image onto base canvas
   useEffect(() => {
@@ -108,6 +129,130 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
     setHistoryStep(newHistory.length - 1);
   }, [history, historyStep]);
 
+  // Change all existing mask colors when brush color changes
+  const changeMaskColor = useCallback((newColor: string) => {
+    const paintCanvas = paintCanvasRef.current;
+    if (!paintCanvas) return;
+
+    const paintCtx = paintCanvas.getContext('2d');
+    if (!paintCtx) return;
+
+    const imageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+    const data = imageData.data;
+
+    // Convert hex color to RGB
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    };
+
+    const newRgb = hexToRgb(newColor);
+    if (!newRgb) return;
+
+    // Change color of all non-transparent pixels
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] > 0) { // If pixel is not transparent
+        data[i] = newRgb.r;     // Red
+        data[i + 1] = newRgb.g; // Green
+        data[i + 2] = newRgb.b; // Blue
+        // Keep original alpha value
+      }
+    }
+
+    paintCtx.putImageData(imageData, 0, 0);
+    saveToHistory();
+  }, [saveToHistory]);
+
+  // Median filter for noise reduction
+  const medianFilter = useCallback((imageData: ImageData) => {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    const newData = new Uint8ClampedArray(data);
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const centerIndex = (y * width + x) * 4;
+        
+        // Collect alpha values from 3x3 neighborhood
+        const alphaValues = [];
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const neighborIndex = ((y + dy) * width + (x + dx)) * 4;
+            alphaValues.push(data[neighborIndex + 3]);
+          }
+        }
+        
+        // Sort and get median
+        alphaValues.sort((a, b) => a - b);
+        const medianAlpha = alphaValues[4]; // Middle value of 9 elements
+        
+        // Apply median alpha value
+        if (medianAlpha > 0) {
+          // If median is opaque, use current brush color
+          const hexToRgb = (hex: string) => {
+            const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return match ? [
+              parseInt(match[1], 16),
+              parseInt(match[2], 16),
+              parseInt(match[3], 16)
+            ] : [255, 0, 0];
+          };
+          
+          const [r, g, b] = hexToRgb(brushColor);
+          newData[centerIndex] = r;
+          newData[centerIndex + 1] = g;
+          newData[centerIndex + 2] = b;
+          newData[centerIndex + 3] = 255;
+        } else {
+          // If median is transparent, make pixel transparent
+          newData[centerIndex] = 0;
+          newData[centerIndex + 1] = 0;
+          newData[centerIndex + 2] = 0;
+          newData[centerIndex + 3] = 0;
+        }
+      }
+    }
+    
+    // Copy result back to original data
+    for (let i = 0; i < data.length; i++) {
+      data[i] = newData[i];
+    }
+    
+    return imageData;
+  }, [brushColor]);
+
+  // Flood fill using q-floodfill library
+  const handleFloodFill = useCallback((startX: number, startY: number) => {
+    const paintCanvas = paintCanvasRef.current;
+    if (!paintCanvas) return;
+
+    const paintCtx = paintCanvas.getContext('2d');
+    if (!paintCtx) return;
+
+    // Round coordinates to integers
+    const x = Math.floor(startX);
+    const y = Math.floor(startY);
+
+    // Boundary check
+    if (x < 0 || x >= paintCanvas.width || y < 0 || y >= paintCanvas.height) return;
+
+    const imageData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+    
+    const floodFill = new FloodFill(imageData);
+    floodFill.fill(brushColor, x, y, 0);
+
+    // Apply median filter to reduce noise
+    medianFilter(imageData);
+
+    paintCtx.putImageData(imageData, 0, 0);
+    saveToHistory();
+  }, [brushColor, medianFilter, saveToHistory]);
+
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const paintCanvas = paintCanvasRef.current;
     if (!paintCanvas) return { x: 0, y: 0 };
@@ -121,6 +266,11 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pos = getMousePos(e);
+    
+    if (tool === 'fill') {
+      handleFloodFill(pos.x, pos.y);
+      return;
+    }
     
     if (tool === 'rectangle') {
       setIsSelectingRect(true);
@@ -361,30 +511,90 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
               Rectangle
             </Button>
             <Button
+              startIcon={<FormatColorFillIcon />}
+              variant={tool === 'fill' ? 'contained' : 'outlined'}
+              onClick={() => setTool('fill')}
+            >
+              Fill
+            </Button>
+            <Button
               startIcon={<EraseIcon />}
               variant={tool === 'eraser' ? 'contained' : 'outlined'}
               onClick={() => setTool('eraser')}
             >
               Eraser
             </Button>
+
+            {/* Mask Color Selection */}
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Mask Color</InputLabel>
+              <Select
+                value={brushColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setBrushColor(newColor);
+                  changeMaskColor(newColor);
+                }}
+                label="Mask Color"
+                startAdornment={<PaletteIcon sx={{ mr: 1, color: brushColor }} />}
+              >
+                {maskColors.map((color) => (
+                  <MenuItem key={color.value} value={color.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          backgroundColor: color.value,
+                          border: '1px solid #ccc',
+                          borderRadius: 1,
+                        }}
+                      />
+                      {color.name}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </ButtonGroup>
 
-          {/* Brush Settings and Action Buttons */}
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
-            <Typography variant="body2" sx={{ minWidth: 80 }}>
-              Brush Size:
-            </Typography>
-            <Slider
-              value={brushSize}
-              onChange={(_, value) => setBrushSize(value as number)}
-              min={1}
-              max={50}
-              sx={{ width: 120 }}
-              valueLabelDisplay="auto"
-            />
-            <Typography variant="body2">{brushSize}px</Typography>
-            
-            {/* Action Buttons */}
+          {/* Brush Size and Opacity - Vertical Layout */}
+          <Stack direction="column" spacing={1}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body2" sx={{ minWidth: 80 }}>
+                Brush Size:
+              </Typography>
+              <Slider
+                value={brushSize}
+                onChange={(_, value) => setBrushSize(value as number)}
+                min={1}
+                max={50}
+                sx={{ width: 120 }}
+                valueLabelDisplay="auto"
+              />
+              <Typography variant="body2">{brushSize}px</Typography>
+            </Stack>
+
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body2" sx={{ minWidth: 80 }}>
+                Opacity:
+              </Typography>
+              <Slider
+                value={maskOpacity}
+                onChange={(_, value) => setMaskOpacity(value as number)}
+                min={0.1}
+                max={1}
+                step={0.1}
+                sx={{ width: 120 }}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+              />
+              <Typography variant="body2">{Math.round(maskOpacity * 100)}%</Typography>
+            </Stack>
+          </Stack>
+
+          {/* Action Buttons */}
+          <Stack direction="row" spacing={1} alignItems="center">
             <Tooltip title="Undo">
               <IconButton
                 onClick={undo}
@@ -449,8 +659,9 @@ const ImagePaintEditor: React.FC<ImagePaintEditorProps> = ({
             top: 0,
             left: 0,
             border: '1px solid #ccc',
-            cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : 'grab',
+            cursor: tool === 'brush' ? 'crosshair' : tool === 'rectangle' ? 'crosshair' : tool === 'fill' ? 'pointer' : 'grab',
             zIndex: 2,
+            opacity: maskOpacity,
           }}
         />
         {/* Rectangle selection overlay */}

@@ -285,7 +285,7 @@ const BackgroundReplacement: React.FC = () => {
                   inputProps={{ maxLength: 1024 }}
                 />
 
-                {/* Mask Prompt */}
+                {/* Mask Image */}
                 <TextField
                   fullWidth
                   label={t('backgroundReplacement.maskPrompt')}
