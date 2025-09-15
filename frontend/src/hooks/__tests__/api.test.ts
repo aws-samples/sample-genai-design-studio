@@ -405,7 +405,7 @@ describe('API hooks', () => {
       expect(mockApiClient.get).toHaveBeenCalledWith('/utils/get/data', {
         params: {
           object_name: 'test-object.jpg',
-          bucket_name: 'vto-app-local', // Use the correct default value from api.ts
+          bucket_name: import.meta.env.VITE_VTO_BUCKET || 'vto-app-local',
         },
       })
       expect(result).toEqual(mockResponse.data)
