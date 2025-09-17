@@ -479,6 +479,7 @@ const VirtualTryOn: React.FC = () => {
                       checked={autoClassificationEnabled}
                       onChange={(e) => setVTOAutoClassificationEnabled(e.target.checked)}
                       size="small"
+                      data-testid="auto-classification-switch"
                     />
                   </Box>
                   

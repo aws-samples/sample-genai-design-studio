@@ -96,16 +96,17 @@ describe('VirtualTryOn', () => {
     renderComponent();
     
     expect(screen.getByText('Auto select garment class')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    expect(screen.getByTestId('auto-classification-switch')).toBeInTheDocument();
   });
 
   it('should toggle auto classification when switch is clicked', () => {
     renderComponent();
     
-    const toggle = screen.getByRole('checkbox');
-    expect(toggle).toBeChecked(); // Default is true
+    const toggle = screen.getByTestId('auto-classification-switch');
+    const input = toggle.querySelector('input[type="checkbox"]');
+    expect(input).toBeChecked(); // Default is true
     
-    fireEvent.click(toggle);
+    fireEvent.click(input!);
     
     expect(mockStoreState.setVTOAutoClassificationEnabled).toHaveBeenCalledWith(false);
   });
@@ -150,7 +151,9 @@ describe('VirtualTryOn', () => {
     // The actual file upload interaction is complex due to the ImageUpload component
     // We verify that the classification function is available and the toggle is enabled
     expect(screen.getByText('Auto select garment class')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox')).toBeChecked();
+    const toggle = screen.getByTestId('auto-classification-switch');
+    const input = toggle.querySelector('input[type="checkbox"]');
+    expect(input).toBeChecked();
   });
 
   it('should not call classification when auto classification is disabled', async () => {
@@ -165,7 +168,9 @@ describe('VirtualTryOn', () => {
     renderComponent();
     
     // Verify that the toggle is unchecked when auto classification is disabled
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    const toggle = screen.getByTestId('auto-classification-switch');
+    const input = toggle.querySelector('input[type="checkbox"]');
+    expect(input).not.toBeChecked();
   });
 
   it('should update garment class when classification succeeds', () => {
