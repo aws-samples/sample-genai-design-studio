@@ -158,6 +158,7 @@
     "frontImage": "フロント画像",
     "backImage": "バック画像",
     "uploadFrontImage": "フロント画像をアップロード",
-    "uploadBackImage": "バック画像をアップロード"
+    "uploadBackImage": "バック画像をアップロード",
+    "garmentImage": "衣服画像"
   }
 }

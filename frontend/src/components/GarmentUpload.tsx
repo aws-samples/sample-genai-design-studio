@@ -99,7 +99,7 @@ const GarmentUpload: React.FC<GarmentUploadProps> = ({
 
       {!isAutoCombineEnabled ? (
         <ImageUpload
-          label="Garment Image"
+          label={t('images.garmentImage')}
           onImageUpload={handleSingleImageUpload}
           uploadedImage={uploadedGarmentImage || null}
           height={300}
