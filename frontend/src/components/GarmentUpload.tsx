@@ -4,11 +4,11 @@ import {
   Typography,
   Paper,
   Switch,
-  FormControlLabel,
   Button,
   Alert,
   Stack
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import ImageUpload from './ImageUpload';
 import { combineImagesHorizontally } from '../utils/imageUtils';
 
@@ -21,6 +21,7 @@ const GarmentUpload: React.FC<GarmentUploadProps> = ({
   onGarmentImageUpload,
   uploadedGarmentImage
 }) => {
+  const { t } = useTranslation();
   const [isAutoCombineEnabled, setIsAutoCombineEnabled] = useState(false);
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
@@ -108,7 +109,7 @@ const GarmentUpload: React.FC<GarmentUploadProps> = ({
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
             <Box sx={{ flex: 1 }}>
               <ImageUpload
-                label="Front Image"
+                label={t('images.frontImage')}
                 onImageUpload={handleFrontImageUpload}
                 uploadedImage={frontImageUrl || null}
                 height={300}
@@ -116,7 +117,7 @@ const GarmentUpload: React.FC<GarmentUploadProps> = ({
             </Box>
             <Box sx={{ flex: 1 }}>
               <ImageUpload
-                label="Back Image"
+                label={t('images.backImage')}
                 onImageUpload={handleBackImageUpload}
                 uploadedImage={backImageUrl || null}
                 height={300}
