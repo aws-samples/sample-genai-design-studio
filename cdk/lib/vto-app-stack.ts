@@ -15,7 +15,11 @@ export interface VtoAppStackProps extends StackProps {
 
 export class VtoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: VtoAppStackProps) {
-    super(scope, id, props);
+    super(scope, id, {
+      description:
+        "Genai Design Studio Stack for Virtual Try-On (uksb-0qdenu9bhz)",
+      ...props,
+    });
 
     // Get configuration from context
     const allowedIpV4AddressRanges = this.node.tryGetContext('allowedIpV4AddressRanges') || [];
