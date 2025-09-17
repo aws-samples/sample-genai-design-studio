@@ -8,17 +8,6 @@
 1. **Nova VTO API** - FastAPIで構築されたRESTful API
 2. **gen_vto_image Lambda Function** - Amazon Bedrockを使用した画像生成Lambda関数
 
-### 推奨テスト実行フロー
-
-#### 1. ローカルテスト実行
-まず、ローカル環境でテストを実行して基本的な動作を確認します。
-
-#### 2. CDK Deploy
-ローカルテストが正常に完了したら、AWSリソースをデプロイします。
-
-#### 3. リモートテスト実行
-デプロイ後、本番環境でテストを実行して最終確認を行います。
-
 ## バックエンド API エンドポイント
 
 ### ヘルスチェックエンドポイント
@@ -38,6 +27,26 @@
 - `GET /utils/get/objectname` - S3オブジェクト名生成
 - `POST /utils/s3url/upload` - S3アップロード用プリサインドURL取得
 - `POST /utils/s3url/download` - S3ダウンロード用プリサインドURL取得
+- 
+
+## 推奨テスト実行フロー
+
+### 事前準備
+1. **AWS認証情報設定**: 以下のように、AWS認証情報を設定
+```
+export AWS_ACCESS_KEY_ID=XXXXX
+export AWS_SECRET_ACCESS_KEY=YYYYY
+export AWS_SESSION_TOKEN=ZZZZZZ
+```
+
+### 1. ローカルテスト実行
+まず、ローカル環境でテストを実行して基本的な動作を確認します。
+
+### 2. CDK Deploy
+ローカルテストが正常に完了したら、AWSリソースをデプロイします。
+
+### 3. リモートテスト実行
+デプロイ後、本番環境でテストを実行して最終確認を行います。
 
 
 ## 1. Nova VTO API テスト
@@ -55,14 +64,6 @@ cd lambda/test/
 - **Docker Image**: `vto-api-dev`
 - **ポート**: 8000
 - **テスト対象**: Nova VTO API の全エンドポイント
-
-#### 事前実行
-1. **AWS認証情報設定**: 以下のように、AWS認証情報を設定
-```
-export AWS_ACCESS_KEY_ID=XXXXX
-export AWS_SECRET_ACCESS_KEY=YYYYY
-export AWS_SESSION_TOKEN=ZZZZZZ
-```
 
 #### 実行内容
 1. **S3バケット作成**: テスト用S3バケット `vto-app-{ACCOUNT_ID}` を作成
