@@ -153,5 +153,12 @@
     "generating": "生成中...",
     "generatedImages": "生成画像",
     "emptyMessage": "背景変更の結果がここに表示されます"
+  },
+  "images": {
+    "frontImage": "フロント画像",
+    "backImage": "バック画像",
+    "uploadFrontImage": "フロント画像をアップロード",
+    "uploadBackImage": "バック画像をアップロード",
+    "garmentImage": "衣服画像"
   }
 }

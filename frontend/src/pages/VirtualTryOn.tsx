@@ -26,6 +26,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ClearIcon from '@mui/icons-material/Clear';
 import ImageUpload from '../components/ImageUpload';
+import GarmentUpload from '../components/GarmentUpload';
 import ImageDisplay from '../components/ImageDisplay';
 import MaskCreator from '../components/MaskCreator';
 import { useAuth } from '../contexts/AuthContext';
@@ -520,10 +521,9 @@ const VirtualTryOn: React.FC = () => {
                   </Alert>
                 )}
 
-                <ImageUpload
-                  label={t('virtualTryOn.garmentImage')}
-                  onImageUpload={handleGarmentImageUpload}
-                  uploadedImage={garmentImage}
+                <GarmentUpload
+                  onGarmentImageUpload={handleGarmentImageUpload}
+                  uploadedGarmentImage={garmentImage}
                 />
               </Stack>
             </AccordionDetails>
