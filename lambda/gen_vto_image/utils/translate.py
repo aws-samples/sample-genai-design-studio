@@ -2,12 +2,11 @@
 
 import os
 from aws_lambda_powertools import Logger
-from .core import BEDROCK_CLIENT
+from .core import BEDROCK_CLIENT, TRANSLATE_MODEL
 
 # Logger setup
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 logger = Logger(service="vto_translate", level=LOG_LEVEL)
-TRANSLATE_MODEL = "us.amazon.nova-micro-v1:0"
 
 
 def translate_to_english(text: str) -> str:
