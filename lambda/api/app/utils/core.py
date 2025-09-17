@@ -35,7 +35,6 @@ s3_client = boto3.client(
     config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
 )
 BEDROCK_REGION = "us-east-1"
-bd_client = boto3.client("bedrock-runtime", BEDROCK_REGION)
 
 # Bedrock client for garment classification
 BEDROCK_CLIENT = boto3.client(
