@@ -23,14 +23,14 @@ S3_CLIENT = boto3.client("s3", region_name=REGION)
 # Bedrock client setup
 BEDROCK_REGION = "us-east-1"
 
-# Nova Model IDs - 統一管理用辞書
+# Nova Model IDs
 NOVA_MODEL_IDS = {
-    "lite": "us.amazon.nova-lite-v1:0",  # タグ生成用
-    "canvas": "amazon.nova-canvas-v1:0",  # 画像生成・VTO・背景置換用
-    "micro": "us.amazon.nova-micro-v1:0",  # 翻訳用
+    "lite": "us.amazon.nova-lite-v1:0",
+    "canvas": "amazon.nova-canvas-v1:0",
+    "micro": "us.amazon.nova-micro-v1:0",
 }
 
-# 各処理用のデフォルトモデル定数 - 統一管理
+# DEFAULT MODELS
 DEFAULTE_GEN_TAGS_MODEL = NOVA_MODEL_IDS["lite"]
 DEFAULT_GEN_IMG = NOVA_MODEL_IDS["canvas"]
 DEFAULT_BACKGROUND = NOVA_MODEL_IDS["canvas"]

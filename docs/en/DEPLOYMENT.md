@@ -60,6 +60,31 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
 }
 ```
 
+### 4. (OPTIONAL) When Specifying deploymentRegion Other Than US
+
+When setting `deploymentRegion` to regions other than `us-east-1` (such as `ap-northeast-1` or `eu-west-1`), you need to modify the `NOVA_MODEL_IDS` in [lambda/gen_vto_image/utils/core.py](../../lambda/gen_vto_image/utils/core.py) to use the appropriate model IDs for the target region.
+
+**Example for ap-northeast-1:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "apac.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "apac.amazon.nova-micro-v1:0", 
+}
+```
+
+**Example for eu-west-1:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "eu.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "eu.amazon.nova-micro-v1:0", 
+}
+```
+
+> [!Note]
+> `amazon.nova-canvas-v1:0` is a common model ID across all regions.
+
 ## Deployment
 ### Full Deployment (Recommended)
 

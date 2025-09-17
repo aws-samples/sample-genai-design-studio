@@ -59,6 +59,30 @@ npx cdk bootstrap
 }
 ```
 
+### 4. (OPTION) deploymentRegion をUS以外に指定する場合
+
+`deploymentRegion` を `us-east-1` 以外（`ap-northeast-1` や `eu-west-1`）に設定する場合、[lambda/gen_vto_image/utils/core.py](../../lambda/gen_vto_image/utils/core.py) の `NOVA_MODEL_IDS` を該当リージョンのモデルIDに修正する必要があります。
+
+**ap-northeast-1 の例:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "apac.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "apac.amazon.nova-micro-v1:0", 
+}
+```
+
+**eu-west-1 の例:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "eu.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "eu.amazon.nova-micro-v1:0", 
+}
+```
+
+> [!Note]
+> `amazon.nova-canvas-v1:0` はすべてのリージョンで共通のモデルIDです。
 
 ## デプロイ
 ### フルデプロイ（推奨）
