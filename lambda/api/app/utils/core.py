@@ -37,6 +37,16 @@ s3_client = boto3.client(
 BEDROCK_REGION = "us-east-1"
 bd_client = boto3.client("bedrock-runtime", BEDROCK_REGION)
 
+# Bedrock client for garment classification
+BEDROCK_CLIENT = boto3.client(
+    service_name="bedrock-runtime",
+    region_name=BEDROCK_REGION,
+    config=Config(read_timeout=300),
+)
+
+# Model IDs for garment classification
+MODEL_IDS = ["anthropic.claude-3-haiku-20240307-v1:0"]
+
 
 def get_object_names(group_id: str, user_id: str) -> Tuple[str, str, str]:
     """
