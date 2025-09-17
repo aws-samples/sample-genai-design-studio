@@ -21,12 +21,14 @@ REGION = os.environ.get("REGION", "us-east-1")
 S3_CLIENT = boto3.client("s3", region_name=REGION)
 
 # Bedrock client setup
+BEDROCK_REGION = "us-east-1"
+DEFAULTE_GEN_TAGS_MODEL = "us.amazon.nova-lite-v1:0"
+
 BEDROCK_CLIENT = boto3.client(
     service_name="bedrock-runtime",
-    region_name=REGION,
+    region_name=BEDROCK_REGION,
     config=Config(read_timeout=300),
 )
-DEFAULTE_GEN_TAGS_MODEL = "us.amazon.nova-lite-v1:0"
 
 
 # Custom exception class

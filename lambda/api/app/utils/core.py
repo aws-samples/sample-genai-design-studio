@@ -23,7 +23,6 @@ logger = Logger(service="api_proxy", level=LOG_LEVEL)
 REGION = os.environ.get(
     "AWS_DEFAULT_REGION", "us-east-1"
 )  # AWS_DEFAULT_REGIONを優先的に使用
-BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
 VTO_BUCKET = os.environ.get("VTO_BUCKET")
 PROMPT_PREFIX = os.environ.get("OBJECT_NAME", "config/prompt")
 GENIMAGE_FUNCTION_NAME = os.environ.get("GENIMAGE_FUNCTION_NAME", "GenImageFunction")
@@ -35,6 +34,7 @@ s3_client = boto3.client(
     region_name=REGION,
     config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
 )
+BEDROCK_REGION = "us-east-1"
 bd_client = boto3.client("bedrock-runtime", BEDROCK_REGION)
 
 
