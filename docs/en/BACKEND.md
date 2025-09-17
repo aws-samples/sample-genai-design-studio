@@ -8,40 +8,44 @@ Testing includes the following two main components:
 1. **Nova VTO API** - RESTful API built with FastAPI
 2. **gen_vto_image Lambda Function** - Image generation Lambda function using Amazon Bedrock
 
-### Recommended Test Execution Flow
-
-#### 1. Local Test Execution
-First, execute tests in the local environment to verify basic functionality.
-
-#### 2. CDK Deploy
-After local tests complete successfully, deploy AWS resources.
-
-#### 3. Remote Test Execution
-After deployment, execute tests in the production environment for final verification.
-
 ## Backend API Endpoints
 
-### Authentication Endpoints
-- `POST /auth/login` - User login
-- `POST /auth/logout` - User logout
-- `POST /auth/refresh` - Token refresh
-- `GET /auth/user` - User information retrieval
+### Health Check Endpoints
+- `GET /` - Root endpoint (health check)
+- `GET /health` - Health check endpoint
 
 ### VTO Processing Endpoints
-- `POST /nova-vto/process` - Start VTO processing
-- `GET /nova-vto/status/{request_id}` - Check processing status
-- `GET /nova-vto/result/{request_id}` - Get processing results
+- `POST /vto/nova/process` - Start Nova Canvas VTO processing
 
 ### Model Generation Endpoints
-- `POST /nova-model/generate` - Model image generation
-- `GET /nova-model/status/{request_id}` - Check generation status
+- `POST /vto/nova/model` - Nova Model text-to-image generation
 
 ### Background Replacement Endpoints
-- `POST /background-replacement/process` - Background replacement processing
+- `POST /vto/nova/background` - Nova Canvas background replacement processing
 
 ### Utility Endpoints
-- `GET /health` - Health check
-- `POST /utils/upload-url` - S3 upload URL retrieval
+- `GET /utils/get/objectname` - S3 object name generation
+- `POST /utils/s3url/upload` - S3 upload presigned URL retrieval
+- `POST /utils/s3url/download` - S3 download presigned URL retrieval
+
+## Recommended Test Execution Flow
+
+### Prerequisites
+1. **AWS Credentials Setup**: Set AWS credentials as follows:
+```
+export AWS_ACCESS_KEY_ID=XXXXX
+export AWS_SECRET_ACCESS_KEY=YYYYY
+export AWS_SESSION_TOKEN=ZZZZZZ
+```
+
+### 1. Local Test Execution
+First, execute tests in the local environment to verify basic functionality.
+
+### 2. CDK Deploy
+After local tests complete successfully, deploy AWS resources.
+
+### 3. Remote Test Execution
+After deployment, execute tests in the production environment for final verification.
 
 ## 1. Nova VTO API Test
 
@@ -49,8 +53,8 @@ After deployment, execute tests in the production environment for final verifica
 
 #### Execution Method
 ```bash
-cd vto-app/lambda/test/
-local_api_test.zsh
+cd lambda/test/
+./local_api_test.zsh
 ```
 
 #### Overview
@@ -60,12 +64,11 @@ local_api_test.zsh
 - **Test Target**: All endpoints of Nova VTO API
 
 #### Execution Steps
-1. **AWS Credentials Setup**: Set AWS credentials using `isengardcli credentials`
-2. **S3 Bucket Creation**: Create test S3 bucket `vto-app-{ACCOUNT_ID}`
-3. **CORS Configuration**: Add CORS configuration to S3 bucket
-4. **Docker Container Startup**: Start FastAPI application in container
-5. **API Test Execution**: Execute `test_nova_vto_api.py` to test API functionality
-6. **Cleanup**: Stop and delete container after test completion
+1. **S3 Bucket Creation**: Create test S3 bucket `vto-app-{ACCOUNT_ID}`
+2. **CORS Configuration**: Add CORS configuration to S3 bucket
+3. **Docker Container Startup**: Start FastAPI application in container
+4. **API Test Execution**: Execute `test_nova_vto_api.py` to test API functionality
+5. **Cleanup**: Stop and delete container after test completion
 
 #### Main Parameters
 - `IMAGE_NAME`: vto-api-dev
@@ -85,16 +88,16 @@ local_api_test.zsh
 
 #### Execution Method
 ```bash
-cd vto-app/lambda/test/
+cd lambda/test/
 
 # First execution (create new user)
-lambda_api_test.zsh --username testuser --password Password123! --first-run
+./lambda_api_test.zsh --username your_email --password Password123! --first-run
 
 # Subsequent executions (token refresh)
-lambda_api_test.zsh --username testuser --password Password123!
+./lambda_api_test.zsh --username your_email --password Password123!
 
 # Execute specific test only
-lambda_api_test.zsh --username testuser --password Password123! test_health_check
+./lambda_api_test.zsh --username your_email --password Password123! test_health_check
 ```
 
 #### Overview
@@ -168,8 +171,8 @@ To ensure test scripts work properly, specific authentication flows must be enab
 
 #### Execution Method
 ```bash
-cd vto-app/lambda/test/
-local_vto_test.zsh
+cd lambda/test/
+./local_vto_test.zsh
 ```
 
 #### Overview
@@ -196,8 +199,8 @@ local_vto_test.zsh
 
 #### Execution Method
 ```bash
-cd vto-app/lambda/test/
-lambda_vto_test.zsh
+cd lambda/test/
+./lambda_vto_test.zsh
 ```
 
 #### Overview
@@ -222,7 +225,7 @@ lambda_vto_test.zsh
 - `LAMBDA_FUNCTION_NAME`: Lambda function name acquired from CDK output
 - `VTO_BUCKET`: S3 bucket name acquired from CDK output
 - `--mode remote`: Remote execution mode flag
-- `--region us-east-1`: AWS region specification
+- `--region ap-northeast-1`: AWS region specification
 
 ---
 
@@ -450,13 +453,13 @@ lambda_vto_test.zsh
 ### Complete Test Flow
 ```bash
 # 1. Local test execution
-cd vto-app/lambda/test
+cd lambda/test
 
 # API local test
-local_api_test.zsh
+./local_api_test.zsh
 
 # Lambda local test  
-local_vto_test.zsh
+./local_vto_test.zsh
 
 # 2. CDK deployment
 cd ../cdk
@@ -466,10 +469,10 @@ npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
 cd ../test
 
 # API remote test
-lambda_api_test.zsh
+./lambda_api_test.zsh
 
 # Lambda remote test
-lambda_vto_test.zsh
+./lambda_vto_test.zsh
 ```
 
 ### Individual Test Execution
@@ -484,7 +487,7 @@ python3 test_nova_vto_api.py --base-url https://api.example.com --bucket-name pr
 python3 test_gen_vto_image.py --mode local
 
 # Lambda test (remote)
-python3 test_gen_vto_image.py --mode remote --region us-east-1
+python3 test_gen_vto_image.py --mode remote --region ap-northeast-1
 
 # Execute specific test only
 python3 test_gen_vto_image.py --mode local GenVTOImageTest.test_basic_vto_processing
