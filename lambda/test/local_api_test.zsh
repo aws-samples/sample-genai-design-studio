@@ -28,7 +28,7 @@ MAX_WAIT_TIME=30  # APIの起動を待つ最大時間（秒）
 echo -e "${GREEN}=== VTO API ローカルテスト開始 ===${NC}"
 
 # AWS credentialの確認
-if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
     echo -e "${YELLOW}AWS credentialが設定されていません。${NC}"
     exit 1
 fi
