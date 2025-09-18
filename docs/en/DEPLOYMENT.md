@@ -2,8 +2,8 @@
 
 ## Prerequisites
 ### Bedrock
-Enable Nova models in one of the following regions: us-east-1, ap-northeast-1, or eu-west-1. This sample uses Nova Canvas image generation models (only available in us-east-1, ap-northeast-1, and eu-west-1) and Nova Micro/Lite text models.
-Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access`, check the entire Nova model family, and click `Save changes`.
+Enable Nova models and Claude Haiku 3 in one of the following regions: us-east-1, ap-northeast-1, or eu-west-1. This sample uses Nova Canvas image generation models (only available in us-east-1, ap-northeast-1, and eu-west-1), Nova Micro/Lite text models, and Claude Haiku 3.
+Go to [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access`, check the entire Nova model family and Claude Haiku 3, and click `Save changes`.
 
 ### CDK Execution Environment
 To deploy CDK projects, the following environment is required. Please set up the environment in advance.
@@ -59,6 +59,38 @@ By modifying [cdk.json](../../cdk/cdk.json) during deployment, security enhancem
   }
 }
 ```
+
+### 4. (OPTIONAL) When Changing Bedrock Model Region
+
+#### Files to Modify
+You can change the Bedrock region used in the following files:
+- [Models used during API execution](../../lambda/api/app/utils/core.py) 
+- [Models used during image generation](../../lambda/gen_vto_image/utils/core.py)
+
+#### How to Change
+1. In both files above, change `BEDROCK_REGION = "us-east-1"` to `ap-northeast-1` or `eu-west-1`
+2. In [Models used during API execution](../../lambda/api/app/utils/core.py), modify the `NOVA_MODEL_IDS` to use the appropriate model IDs for the target region
+
+**Example for ap-northeast-1:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "apac.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "apac.amazon.nova-micro-v1:0", 
+}
+```
+
+**Example for eu-west-1:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "eu.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "eu.amazon.nova-micro-v1:0", 
+}
+```
+
+> [!Note]
+> `nova-lite-v1:0` and `nova-micro-v1:0` use Cross-Region Inference, which routes to different destination regions based on the source region of the caller. For more information about destination regions, please refer to [this documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html).
 
 ## Deployment
 ### Full Deployment (Recommended)

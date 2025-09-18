@@ -2,8 +2,8 @@
 
 ## 事前準備
 ### Bedrock
-us-east-1、ap-northeast-1、eu-west-1 のいずれかのリージョンで、Nova モデルの有効化を行ってください。本サンプルではNova Canvasの画像生成モデル（us-east-1、ap-northeast-1、eu-west-1でのみ利用可能）と Nova Micro/Lite などのテキストモデルを使用しています。
-[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` からNovaモデルファミリー一式をチェックし、`Save changes`をクリックします
+us-east-1、ap-northeast-1、eu-west-1 のいずれかのリージョンで、Nova モデルと Claude Haiku 3 の有効化を行ってください。本サンプルではNova Canvasの画像生成モデル（us-east-1、ap-northeast-1、eu-west-1でのみ利用可能）と Nova Micro/Lite などのテキストモデル、およびClaude Haiku 3を使用しています。
+[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` からNovaモデルファミリー一式とClaude Haiku 3をチェックし、`Save changes`をクリックします
 ### CDK実行環境
 CDK のプロジェクトをデプロイするには、以下の環境が必要です。事前に環境のセットアップを実施してください。
 
@@ -59,6 +59,37 @@ npx cdk bootstrap
 }
 ```
 
+### 4. (OPTION) Bedrockモデルのリージョンを変更する場合
+
+#### 変更箇所 
+以下で Bedrock の使用するリージョンの変更が可能です。
+- [API 実行時に使用するモデル](../../lambda/api/app/utils/core.py) 
+- [画像生成時に使用するモデル](../../lambda/gen_vto_image/utils/core.py)
+
+#### 変更方法
+1. 上記、両ファイルの`BEDROCK_REGION = "us-east-1"` を `ap-northeast-1` や `eu-west-1` に設定
+2. [API 実行時に使用するモデル](../../lambda/api/app/utils/core.py)  内の、`NOVA_MODEL_IDS` を該当リージョンのモデルIDに修正
+
+**ap-northeast-1 の例:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "apac.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "apac.amazon.nova-micro-v1:0", 
+}
+```
+
+**eu-west-1 の例:**
+```python
+NOVA_MODEL_IDS = {
+    "lite": "eu.amazon.nova-lite-v1:0", 
+    "canvas": "amazon.nova-canvas-v1:0",  
+    "micro": "eu.amazon.nova-micro-v1:0", 
+}
+```
+
+> [!Note]
+> `nova-lite-v1:0` と `nova-micro-v1:0` は Cross-Region Inference を使用しているため、呼び出し元のソースリージョンに応じて異なる送信先リージョンにルーティングされます。送信先リージョンなどについては[こちらのドキュメント](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html)をご確認ください。
 
 ## デプロイ
 ### フルデプロイ（推奨）

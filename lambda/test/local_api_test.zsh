@@ -28,7 +28,7 @@ MAX_WAIT_TIME=30  # APIの起動を待つ最大時間（秒）
 echo -e "${GREEN}=== VTO API ローカルテスト開始 ===${NC}"
 
 # AWS credentialの確認
-if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
     echo -e "${YELLOW}AWS credentialが設定されていません。${NC}"
     exit 1
 fi
@@ -39,6 +39,55 @@ ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 BUCKET_NAME="vto-app-$ACCOUNT_ID"
 # create bucket if not exists
 aws s3 mb s3://$BUCKET_NAME || true
+
+# CDK設定ファイルとCDK出力ファイルのパス
+CDK_JSON_FILE="../../cdk/cdk.json"
+CDK_OUTPUTS_FILE="../../cdk/.cdk-outputs.json"
+VTO_GEN_FUNCTION_NAME=""
+DEPLOYMENT_REGION=""
+
+echo -e "\n${YELLOW}CDK設定からリージョンとVTO_GEN_FUNCTION_NAMEを取得中...${NC}"
+
+# jqコマンドの存在確認
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}エラー: jqコマンドが見つかりません。jqをインストールしてください。${NC}"
+    echo -e "${YELLOW}macOS: brew install jq${NC}"
+    echo -e "${YELLOW}Ubuntu: sudo apt-get install jq${NC}"
+    exit 1
+fi
+
+# cdk.jsonからdeploymentRegionを取得
+if [ ! -f "$CDK_JSON_FILE" ]; then
+    echo -e "${RED}エラー: CDK設定ファイルが見つかりません: $CDK_JSON_FILE${NC}"
+    exit 1
+fi
+
+DEPLOYMENT_REGION=$(jq -r '.context.deploymentRegion // empty' "$CDK_JSON_FILE")
+
+if [ -z "$DEPLOYMENT_REGION" ]; then
+    echo -e "${YELLOW}警告: cdk.jsonからdeploymentRegionを取得できませんでした。デフォルト値を使用します。${NC}"
+    DEPLOYMENT_REGION="us-east-1"  # フォールバック
+fi
+
+echo -e "${GREEN}Deployment Region: $DEPLOYMENT_REGION${NC}"
+
+# CDK出力ファイルの存在確認
+if [ ! -f "$CDK_OUTPUTS_FILE" ]; then
+    echo -e "${RED}エラー: CDK出力ファイルが見つかりません: $CDK_OUTPUTS_FILE${NC}"
+    echo -e "${YELLOW}CDKをデプロイしてから再実行してください: cd ../../cdk && npx cdk deploy --all --outputs-file ./.cdk-outputs.json${NC}"
+    exit 1
+fi
+
+# GenImageFunctionNameを取得
+VTO_GEN_FUNCTION_NAME=$(jq -r '.VtoAppStack.GenImageFunctionName // empty' "$CDK_OUTPUTS_FILE")
+
+if [ -z "$VTO_GEN_FUNCTION_NAME" ]; then
+    echo -e "${RED}エラー: VTO_GEN_FUNCTION_NAMEを取得できませんでした${NC}"
+    echo -e "${YELLOW}CDK出力ファイルの内容を確認してください: $CDK_OUTPUTS_FILE${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}VTO_GEN_FUNCTION_NAME: $VTO_GEN_FUNCTION_NAME${NC}"
 
 # CORS設定を追加
 echo "S3バケットにCORS設定を追加中..."
@@ -75,6 +124,7 @@ fi
 
 # 3. Dockerコンテナを起動
 echo -e "\n${YELLOW}Dockerコンテナを起動中...${NC}"
+echo -e "${GREEN}使用するリージョン: ${AWS_DEFAULT_REGION:-$DEPLOYMENT_REGION}${NC}"
 # AWS credentialを環境変数として渡す
 docker run -d \
     --name $CONTAINER_NAME \
@@ -82,8 +132,9 @@ docker run -d \
     -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
     -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
     -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
-    -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}" \
+    -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$DEPLOYMENT_REGION}" \
     -e VTO_BUCKET="$BUCKET_NAME" \
+    -e VTO_GEN_FUNCTION_NAME="$VTO_GEN_FUNCTION_NAME" \
     -e LOG_LEVEL="INFO" \
     $IMAGE_NAME
 

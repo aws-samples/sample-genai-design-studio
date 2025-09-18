@@ -21,12 +21,27 @@ REGION = os.environ.get("REGION", "us-east-1")
 S3_CLIENT = boto3.client("s3", region_name=REGION)
 
 # Bedrock client setup
+BEDROCK_REGION = "us-east-1"
+
+# Nova Model IDs
+NOVA_MODEL_IDS = {
+    "lite": "us.amazon.nova-lite-v1:0",
+    "canvas": "amazon.nova-canvas-v1:0",
+    "micro": "us.amazon.nova-micro-v1:0",
+}
+
+# DEFAULT MODELS
+DEFAULTE_GEN_TAGS_MODEL = NOVA_MODEL_IDS["lite"]
+DEFAULT_GEN_IMG = NOVA_MODEL_IDS["canvas"]
+DEFAULT_BACKGROUND = NOVA_MODEL_IDS["canvas"]
+DEFAULT_TRANSLATION = NOVA_MODEL_IDS["micro"]
+DEFAULT_VTO_IMG = NOVA_MODEL_IDS["canvas"]
+
 BEDROCK_CLIENT = boto3.client(
     service_name="bedrock-runtime",
-    region_name=REGION,
+    region_name=BEDROCK_REGION,
     config=Config(read_timeout=300),
 )
-DEFAULTE_GEN_TAGS_MODEL = "us.amazon.nova-lite-v1:0"
 
 
 # Custom exception class

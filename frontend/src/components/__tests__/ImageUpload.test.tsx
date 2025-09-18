@@ -1,6 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import ImageUpload from '../ImageUpload'
+
+// Mock canvas for tests
+const mockGetContext = vi.fn(() => ({
+  drawImage: vi.fn(),
+  getImageData: vi.fn(() => ({
+    data: new Uint8ClampedArray([255, 255, 255, 255]) // Opaque white pixel
+  }))
+}))
+
+const mockCanvas = {
+  getContext: mockGetContext,
+  width: 0,
+  height: 0,
+}
 
 // Mock react-dropzone
 vi.mock('react-dropzone', () => ({
@@ -34,9 +48,25 @@ vi.mock('react-dropzone', () => ({
 
 describe('ImageUpload', () => {
   const mockOnImageUpload = vi.fn()
+  let originalCreateElement: typeof document.createElement
   
   beforeEach(() => {
     mockOnImageUpload.mockClear()
+    mockGetContext.mockClear()
+    
+    // Mock document.createElement for canvas
+    originalCreateElement = document.createElement
+    document.createElement = vi.fn((tagName: string) => {
+      if (tagName === 'canvas') {
+        return mockCanvas as any
+      }
+      return originalCreateElement.call(document, tagName)
+    })
+  })
+  
+  afterEach(() => {
+    // Restore original createElement
+    document.createElement = originalCreateElement
   })
 
   it('renders with label', () => {
@@ -61,7 +91,7 @@ describe('ImageUpload', () => {
     )
     
     expect(screen.getByText('Test Imageをアップロード')).toBeInTheDocument()
-    expect(screen.getByText('Image: JPEG, PNG, WebP / lower than 4.2M Pixel')).toBeInTheDocument()
+    expect(screen.getByText('Image: JPEG, PNG, WebP / 320-4096px / Max 4.19M pixels / 8-bit RGB')).toBeInTheDocument()
   })
 
   it('shows mask editable text when allowMask is true', () => {
@@ -148,8 +178,8 @@ describe('ImageUpload', () => {
     const mockImage = {
       onload: null as any,
       onerror: null as any,
-      width: 100,
-      height: 100,
+      width: 1024,
+      height: 768,
       _src: '',
       addEventListener: function(this: any, event: string) {
         if (event === 'load' && this.onload) {
@@ -172,17 +202,28 @@ describe('ImageUpload', () => {
     })
     
     ;(window as any).Image = vi.fn().mockImplementation(() => mockImage)
+    
+    // Mock FileReader
+    const mockFileReader = {
+      onload: null as any,
+      onerror: null as any,
+      readAsDataURL: function(this: any) {
+        if (this.onload) {
+          setTimeout(() => {
+            this.onload({ target: { result: 'data:image/jpeg;base64,test' } })
+          }, 0)
+        }
+      }
+    }
+    
+    ;(window as any).FileReader = vi.fn().mockImplementation(() => mockFileReader)
 
     // Re-mock useDropzone to simulate file drop
     const { useDropzone } = await import('react-dropzone')
+    let dropHandler: any
+    
     vi.mocked(useDropzone).mockImplementation((options) => {
-      // Simulate dropping a file
-      setTimeout(() => {
-        const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
-        if (options?.onDrop) {
-          options.onDrop([mockFile], [], {} as any)
-        }
-      }, 100)
+      dropHandler = options?.onDrop
       
       return {
         getRootProps: <T extends any = any>() => ({} as T),
@@ -208,6 +249,10 @@ describe('ImageUpload', () => {
         uploadedImage={null}
       />
     )
+    
+    // Simulate dropping a file
+    const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+    await dropHandler([mockFile], [], {} as any)
     
     await waitFor(() => {
       expect(mockOnImageUpload).toHaveBeenCalledTimes(1)

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -20,12 +20,16 @@ import {
   Slider,
   Alert,
   IconButton,
+  Switch,
+  CircularProgress,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ClearIcon from '@mui/icons-material/Clear';
 import ImageUpload from '../components/ImageUpload';
+import GarmentUpload from '../components/GarmentUpload';
 import ImageDisplay from '../components/ImageDisplay';
 import MaskCreator from '../components/MaskCreator';
+import { useAuth } from '../contexts/AuthContext';
 import {
   generateObjectNames,
   getPresignedUploadUrl,
@@ -35,12 +39,67 @@ import {
   processNovaVTO,
 } from '../hooks/api';
 import { validateNovaVTORequest, getValidationErrors } from '../utils/validation';
-import { useAuth } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
+import { useGarmentClassification } from '../hooks/useGarmentClassification';
+
+// Garment categories structure
+const garmentCategories = {
+  UPPER_BODY: {
+    label: 'Upper Body',
+    items: [
+      { value: 'UPPER_BODY', label: 'General Upper Body' },
+      { value: 'LONG_SLEEVE_SHIRT', label: 'Long Sleeve Shirt' },
+      { value: 'SHORT_SLEEVE_SHIRT', label: 'Short Sleeve Shirt' },
+      { value: 'NO_SLEEVE_SHIRT', label: 'No Sleeve Shirt' },
+      { value: 'OTHER_UPPER_BODY', label: 'Other Upper Body' },
+    ]
+  },
+  LOWER_BODY: {
+    label: 'Lower Body',
+    items: [
+      { value: 'LOWER_BODY', label: 'General Lower Body' },
+      { value: 'LONG_PANTS', label: 'Long Pants' },
+      { value: 'SHORT_PANTS', label: 'Short Pants' },
+      { value: 'OTHER_LOWER_BODY', label: 'Other Lower Body' },
+    ]
+  },
+  FULL_BODY: {
+    label: 'Full Body',
+    items: [
+      { value: 'FULL_BODY', label: 'General Full Body' },
+      { value: 'LONG_DRESS', label: 'Long Dress' },
+      { value: 'SHORT_DRESS', label: 'Short Dress' },
+      { value: 'FULL_BODY_OUTFIT', label: 'Full Body Outfit' },
+      { value: 'OTHER_FULL_BODY', label: 'Other Full Body' },
+    ]
+  },
+  FOOTWEAR: {
+    label: 'Footwear',
+    items: [
+      { value: 'FOOTWEAR', label: 'General Footwear' },
+      { value: 'SHOES', label: 'Shoes' },
+      { value: 'BOOTS', label: 'Boots' },
+      { value: 'OTHER_FOOTWEAR', label: 'Other Footwear' },
+    ]
+  },
+};
+
+// Helper function to get main category from garment class
+const getMainCategoryFromGarmentClass = (garmentClass: string): string => {
+  for (const [key, category] of Object.entries(garmentCategories)) {
+    if (category.items.some(item => item.value === garmentClass)) {
+      return key;
+    }
+  }
+  return 'UPPER_BODY'; // Default
+};
 
 const VirtualTryOn: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  
+  // State for main category
+  const [mainCategory, setMainCategory] = useState<string>('');
   
   // Zustand Store
   const {
@@ -72,6 +131,10 @@ const VirtualTryOn: React.FC = () => {
         cfgScale,
         seed,
       },
+      autoClassificationEnabled,
+      isClassifying,
+      classificationError,
+      classificationSuccess,
       isLoading,
       uploadProgress,
       processingProgress,
@@ -85,7 +148,30 @@ const VirtualTryOn: React.FC = () => {
     setVTOSelectedImageIndex,
     setVTOParameters,
     setVTOLoadingState,
+    setVTOAutoClassificationEnabled,
+    setVTOClassificationState,
   } = useAppStore();
+
+  // Garment Classification Hook
+  const { classifyGarmentImage } = useGarmentClassification();
+
+  // Initialize main category based on current garment class
+  useEffect(() => {
+    const category = getMainCategoryFromGarmentClass(garmentClass);
+    setMainCategory(category);
+  }, [garmentClass]);
+  
+  // Handle main category change
+  const handleMainCategoryChange = (event: any) => {
+    const newCategory = event.target.value;
+    setMainCategory(newCategory);
+    
+    // Set garment class to the first item of the selected category
+    const categoryData = garmentCategories[newCategory as keyof typeof garmentCategories];
+    if (categoryData && categoryData.items.length > 0) {
+      setVTOParameters({ garmentClass: categoryData.items[0].value });
+    }
+  };
 
   const handleModelImageUpload = (file: File) => {
     const url = URL.createObjectURL(file);
@@ -99,9 +185,53 @@ const VirtualTryOn: React.FC = () => {
     setVTOParameters({ maskType: 'IMAGE' });
   };
 
-  const handleGarmentImageUpload = (file: File) => {
+  const handleGarmentImageUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
     setVTOGarmentImage(file, url);
+
+    // 自動判定が有効な場合、garment classificationを実行
+    if (autoClassificationEnabled) {
+      setVTOClassificationState({ isClassifying: true, classificationError: null, classificationSuccess: null });
+      
+      try {
+        // Use authenticated user info or fallback to defaults
+        const groupId = user?.userId || 'default_group';
+        const userId = user?.userId || 'default_user';
+        
+        const result = await classifyGarmentImage(file, groupId, userId);
+        console.log('🔍 Classification hook response:', result);
+        
+        // useGarmentClassificationフックは既に変換済みの結果を返す
+        if (result && result.garmentClass) {
+          const garmentClass = result.garmentClass;
+          const confidence = result.confidence;
+          
+          // 判定されたgarmentClassを設定
+          setVTOParameters({ garmentClass: garmentClass });
+          
+          // メインカテゴリも更新
+          const category = getMainCategoryFromGarmentClass(garmentClass);
+          setMainCategory(category);
+          
+          // 成功メッセージを画面に表示
+          setVTOClassificationState({ 
+            classificationSuccess: `Auto-classified as: ${garmentClass}${confidence ? ` (confidence: ${Math.round(confidence * 100)}%)` : ''}`,
+            classificationError: null
+          });
+        } else {
+          setVTOClassificationState({ 
+            classificationError: 'Auto classification failed to determine garment type. Please select manually.' 
+          });
+        }
+      } catch (error) {
+        console.error('Auto classification failed:', error);
+        setVTOClassificationState({ 
+          classificationError: 'Auto classification service is currently unavailable. Please select garment class manually.' 
+        });
+      } finally {
+        setVTOClassificationState({ isClassifying: false });
+      }
+    }
   };
 
   const handleMaskImageUpload = (file: File) => {
@@ -338,11 +468,65 @@ const VirtualTryOn: React.FC = () => {
               <Typography variant="h6">{t('virtualTryOn.garmentImage')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <ImageUpload
-                label={t('virtualTryOn.garmentImage')}
-                onImageUpload={handleGarmentImageUpload}
-                uploadedImage={garmentImage}
-              />
+              <Stack spacing={2}>
+                {/* Auto Classification Toggle */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="body2">
+                      Auto select garment class
+                    </Typography>
+                    <Switch
+                      checked={autoClassificationEnabled}
+                      onChange={(e) => setVTOAutoClassificationEnabled(e.target.checked)}
+                      size="small"
+                      data-testid="auto-classification-switch"
+                    />
+                  </Box>
+                  
+                  {/* 説明文 */}
+                  <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+                    {autoClassificationEnabled 
+                      ? "Automatically detects garment type when image is uploaded"
+                      : "Manual garment class selection required"
+                    }
+                  </Typography>
+                </Box>
+                
+                {/* Classification Status */}
+                {isClassifying && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="textSecondary">
+                      Classifying garment...
+                    </Typography>
+                  </Box>
+                )}
+                
+                {classificationError && (
+                  <Alert 
+                    severity="warning" 
+                    onClose={() => setVTOClassificationState({ classificationError: null })}
+                    sx={{ fontSize: '0.875rem' }}
+                  >
+                    {classificationError}
+                  </Alert>
+                )}
+
+                {classificationSuccess && (
+                  <Alert 
+                    severity="info" 
+                    onClose={() => setVTOClassificationState({ classificationSuccess: null })}
+                    sx={{ fontSize: '0.875rem' }}
+                  >
+                    {classificationSuccess}
+                  </Alert>
+                )}
+
+                <GarmentUpload
+                  onGarmentImageUpload={handleGarmentImageUpload}
+                  uploadedGarmentImage={garmentImage}
+                />
+              </Stack>
             </AccordionDetails>
           </Accordion>
 
@@ -377,18 +561,6 @@ const VirtualTryOn: React.FC = () => {
                         </Select>
                       </FormControl>
 
-                      <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
-                        <Select
-                          value={mergeStyle}
-                          onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
-                          label="Merge Style"
-                        >
-                          <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
-                          <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
-                          <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
-                        </Select>
-                      </FormControl>
 
                       {maskType === 'PROMPT' && (
                         <Box>
@@ -416,6 +588,7 @@ const VirtualTryOn: React.FC = () => {
                               onImageUpload={handleMaskImageUpload}
                               uploadedImage={maskImage}
                               height={200}
+                              isMaskImage={true}
                             />
                             {maskImage && (
                               <IconButton
@@ -481,18 +654,45 @@ const VirtualTryOn: React.FC = () => {
                               *{t('virtualTryOn.garmentClassDescription')}*
                             </Typography>
 
+                            {/* Main Category Selection */}
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                              <InputLabel>{t('virtualTryOn.garmentClass')}</InputLabel>
+                              <InputLabel>{t('virtualTryOn.garmentCategory')}</InputLabel>
                               <Select
-                                value={garmentClass}
-                                onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
+                                value={mainCategory}
+                                onChange={handleMainCategoryChange}
+                                label={t('virtualTryOn.garmentCategory')}
                               >
                                 <MenuItem value="UPPER_BODY">{t('virtualTryOn.upperBody')}</MenuItem>
                                 <MenuItem value="LOWER_BODY">{t('virtualTryOn.lowerBody')}</MenuItem>
                                 <MenuItem value="FULL_BODY">{t('virtualTryOn.fullBody')}</MenuItem>
-                                <MenuItem value="SHOES">{t('virtualTryOn.shoes')}</MenuItem>
+                                <MenuItem value="FOOTWEAR">{t('virtualTryOn.footwear')}</MenuItem>
                               </Select>
                             </FormControl>
+
+                            {/* Detailed Garment Class Selection */}
+                            {mainCategory && (
+                              <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>{t('virtualTryOn.garmentType')}</InputLabel>
+                                <Select
+                                  value={garmentClass}
+                                  onChange={(e) => setVTOParameters({ garmentClass: e.target.value })}
+                                  label={t('virtualTryOn.garmentType')}
+                                >
+                                  {garmentCategories[mainCategory as keyof typeof garmentCategories].items.map((item) => {
+                                    // Convert UPPER_BODY to upperBody, LONG_SLEEVE_SHIRT to longSleeveShirt, etc.
+                                    const translationKey = item.value.toLowerCase().split('_').map((word, index) => 
+                                      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+                                    ).join('');
+                                    
+                                    return (
+                                      <MenuItem key={item.value} value={item.value}>
+                                        {t(`virtualTryOn.${translationKey}`)}
+                                      </MenuItem>
+                                    );
+                                  })}
+                                </Select>
+                              </FormControl>
+                            )}
 
                             <Typography variant="h6" gutterBottom>
                               {t('virtualTryOn.garmentStyling')}
@@ -501,7 +701,7 @@ const VirtualTryOn: React.FC = () => {
                               *{t('virtualTryOn.garmentStylingDesc')}*
                             </Typography>
 
-                            {(garmentClass === 'UPPER_BODY' || garmentClass === 'FULL_BODY') && (
+                            {(garmentClass === 'UPPER_BODY' || garmentClass === 'FULL_BODY' || garmentClass === 'LONG_SLEEVE_SHIRT' || garmentClass === 'SHORT_SLEEVE_SHIRT' || garmentClass === 'NO_SLEEVE_SHIRT' || garmentClass === 'OTHER_UPPER_BODY' || garmentClass === 'LONG_DRESS' || garmentClass === 'SHORT_DRESS' || garmentClass === 'FULL_BODY_OUTFIT' || garmentClass === 'OTHER_FULL_BODY') && (
                               <>
                                 <FormControl fullWidth sx={{ mb: 2 }}>
                                   <InputLabel>{t('virtualTryOn.longSleeveStyle')}</InputLabel>
@@ -560,53 +760,74 @@ const VirtualTryOn: React.FC = () => {
                         </Accordion>
                       )}
 
-                      {/* IMAGE Mask Type Parameters */}
-                      {maskType === 'IMAGE' && (
-                        <Accordion>
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle2">{t('virtualTryOn.imageMaskTypeParams')}</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveBodyPose')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveBodyPose}
-                                  onChange={(e) => setVTOParameters({ preserveBodyPose: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
 
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveHands')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveHands}
-                                  onChange={(e) => setVTOParameters({ preserveHands: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
+                {/* Optional Parameters */}
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>{t('virtualTryOn.optionalParameters')}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {/* Merge Style */}
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>{t('virtualTryOn.mergeStyle')}</InputLabel>
+                        <Select
+                          value={mergeStyle}
+                          onChange={(e) => setVTOParameters({ mergeStyle: e.target.value })}
+                          label={t('virtualTryOn.mergeStyle')}
+                        >
+                          <MenuItem value="BALANCED">{t('virtualTryOn.balanced')}</MenuItem>
+                          <MenuItem value="SEAMLESS">{t('virtualTryOn.seamless')}</MenuItem>
+                          <MenuItem value="DETAILED">{t('virtualTryOn.detailed')}</MenuItem>
+                        </Select>
+                      </FormControl>
 
-                              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                                <FormLabel component="legend">{t('virtualTryOn.preserveFace')}</FormLabel>
-                                <RadioGroup
-                                  row
-                                  value={preserveFace}
-                                  onChange={(e) => setVTOParameters({ preserveFace: e.target.value })}
-                                >
-                                  <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
-                                  <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
-                                </RadioGroup>
-                              </FormControl>
-                            </Box>
-                          </AccordionDetails>
-                        </Accordion>
-                      )}
+                      {/* Mask Exclusions */}
+                      <Typography variant="h6" gutterBottom>
+                        {t('virtualTryOn.maskExclusions')}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                        *{t('virtualTryOn.maskExclusionsDescription')}*
+                      </Typography>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveBodyPose')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveBodyPose}
+                          onChange={(e) => setVTOParameters({ preserveBodyPose: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveHands')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveHands}
+                          onChange={(e) => setVTOParameters({ preserveHands: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
+
+                      <FormControl component="fieldset" sx={{ mb: 2 }}>
+                        <FormLabel component="legend">{t('virtualTryOn.preserveFace')}</FormLabel>
+                        <RadioGroup
+                          row
+                          value={preserveFace}
+                          onChange={(e) => setVTOParameters({ preserveFace: e.target.value })}
+                        >
+                          <FormControlLabel value="ON" control={<Radio />} label={t('virtualTryOn.on')} />
+                          <FormControlLabel value="OFF" control={<Radio />} label={t('virtualTryOn.off')} />
+                        </RadioGroup>
+                      </FormControl>
                     </Box>
                   </AccordionDetails>
                 </Accordion>
@@ -639,7 +860,7 @@ const VirtualTryOn: React.FC = () => {
                     </FormControl>
 
                     <Box sx={{ mb: 2 }}>
-                      <Typography gutterBottom>{t('virtualTryOn.cfgScale')}</Typography>
+                      <Typography gutterBottom>{t('virtualTryOn.cfgScale')}: {cfgScale}</Typography>
                       <Slider
                         value={cfgScale}
                         onChange={(_, value) => setVTOParameters({ cfgScale: value as number })}

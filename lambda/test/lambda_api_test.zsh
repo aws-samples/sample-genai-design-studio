@@ -110,8 +110,8 @@ echo "Using stack: ${STACK_NAME}"
 # Extract all parameters
 API_URL=$(jq -r ".${STACK_NAME}.ApiUrl" "${CDK_OUTPUTS_FILE}")
 BUCKET_NAME=$(jq -r ".${STACK_NAME}.VtoImageBucketName" "${CDK_OUTPUTS_FILE}")
-USER_POOL_ID=$(jq -r ".${STACK_NAME}.AuthUserPoolIdC0605E59" "${CDK_OUTPUTS_FILE}")
-CLIENT_ID=$(jq -r ".${STACK_NAME}.AuthUserPoolClientId8216BF9A" "${CDK_OUTPUTS_FILE}")
+USER_POOL_ID=$(jq -r ".${STACK_NAME} | to_entries[] | select(.key | startswith(\"AuthUserPoolId\")) | .value" "${CDK_OUTPUTS_FILE}")
+CLIENT_ID=$(jq -r ".${STACK_NAME} | to_entries[] | select(.key | startswith(\"AuthUserPoolClientId\")) | .value" "${CDK_OUTPUTS_FILE}")
 
 # Extract region from UserPoolId (format: region_xxxxx)
 REGION=$(echo "${USER_POOL_ID}" | cut -d'_' -f1)

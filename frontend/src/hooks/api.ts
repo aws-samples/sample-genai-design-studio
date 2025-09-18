@@ -193,7 +193,7 @@ export const processNovaVTO = async (params: {
       return_mask: params.returnMask || false,
       number_of_images: params.numberOfImages || 1,
       quality: params.quality || 'standard',
-      cfg_scale: params.cfgScale || 3.0,
+      cfg_scale: params.cfgScale || 6.5,
       seed: params.seed || -1,
     });
     return response.data;
@@ -228,7 +228,7 @@ export const processNovaModel = async (params: {
       object_names: params.objectNames,
       prompt: params.prompt,
       model_id: params.modelId || 'amazon.nova-canvas-v1:0',
-      cfg_scale: params.cfgScale || 8.0,
+      cfg_scale: params.cfgScale || 6.5,
       height: params.height || 1024,
       width: params.width || 1024,
       number_of_images: params.numberOfImages || 1,
@@ -273,7 +273,7 @@ export const processBackgroundReplacement = async (params: {
       mask_image_object_name: params.maskImageObjectName,
       model_id: params.modelId || 'amazon.nova-canvas-v1:0',
       outPaintingMode: params.outPaintingMode || 'DEFAULT',
-      cfg_scale: params.cfgScale || 5.0,
+      cfg_scale: params.cfgScale || 6.5,
       number_of_images: params.numberOfImages || 1,
       height: params.height || 512,
       width: params.width || 512,
@@ -281,6 +281,50 @@ export const processBackgroundReplacement = async (params: {
     return response.data;
   } catch (error) {
     console.error('Error processing Background Replacement:', error);
+    throw error;
+  }
+};
+
+// Garment Classification APIを呼び出す
+export const classifyGarment = async (file: File, groupId?: string, userId?: string) => {
+  try {
+    console.log('📡 Calling classify-garment API with file:', file.name, 'Size:', file.size, 'Type:', file.type);
+    
+    // Convert file to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data:image/...;base64, prefix
+        const base64Data = result.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    // Use provided IDs or fallback to defaults
+    const group_id = groupId || 'default_group';
+    const user_id = userId || 'default_user';
+    
+    const requestBody = {
+      group_id,
+      user_id,
+      image_base64: base64
+    };
+    
+    console.log('📤 Sending POST request to /vto/classify-garment with body keys:', Object.keys(requestBody));
+    
+    const response = await apiClient.post('/vto/classify-garment', requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    console.log('📥 Received response:', response.status, response.data);
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Error classifying garment:', error);
     throw error;
   }
 };

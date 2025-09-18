@@ -23,7 +23,6 @@ logger = Logger(service="api_proxy", level=LOG_LEVEL)
 REGION = os.environ.get(
     "AWS_DEFAULT_REGION", "us-east-1"
 )  # AWS_DEFAULT_REGIONを優先的に使用
-BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
 VTO_BUCKET = os.environ.get("VTO_BUCKET")
 PROMPT_PREFIX = os.environ.get("OBJECT_NAME", "config/prompt")
 GENIMAGE_FUNCTION_NAME = os.environ.get("GENIMAGE_FUNCTION_NAME", "GenImageFunction")
@@ -35,7 +34,17 @@ s3_client = boto3.client(
     region_name=REGION,
     config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
 )
-bd_client = boto3.client("bedrock-runtime", BEDROCK_REGION)
+BEDROCK_REGION = "us-east-1"
+
+# Bedrock client for garment classification
+BEDROCK_CLIENT = boto3.client(
+    service_name="bedrock-runtime",
+    region_name=BEDROCK_REGION,
+    config=Config(read_timeout=300),
+)
+
+# Model IDs for garment classification
+MODEL_IDS = ["anthropic.claude-3-haiku-20240307-v1:0"]
 
 
 def get_object_names(group_id: str, user_id: str) -> Tuple[str, str, str]:

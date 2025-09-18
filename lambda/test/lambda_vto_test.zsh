@@ -7,7 +7,7 @@ set -e
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 echo "=== Remote Lambda Test for gen_vto_image ==="
 
@@ -28,7 +28,7 @@ aws sts get-caller-identity >/dev/null || {
 echo "AWS credentials verified"
 
 # CDK outputs file path
-CDK_OUTPUTS_FILE="${PROJECT_ROOT}/vto-app/cdk/.cdk-outputs.json"
+CDK_OUTPUTS_FILE="${PROJECT_ROOT}/cdk/.cdk-outputs.json"
 
 # Check if CDK outputs file exists
 if [ ! -f "${CDK_OUTPUTS_FILE}" ]; then
@@ -78,12 +78,14 @@ echo "Lambda function verified"
 # Change to test directory
 cd "${SCRIPT_DIR}"
 
-# Set environment variable for VTO bucket
+# Set environment variables for test script
 export VTO_BUCKET="${VTO_BUCKET}"
+export LAMBDA_FUNCTION_NAME="${LAMBDA_FUNCTION_NAME}"
 
 # Run the Python test script in remote mode
 echo "Running remote Lambda tests..."
 echo "Using VTO_BUCKET: ${VTO_BUCKET}"
+echo "Using Lambda function: ${LAMBDA_FUNCTION_NAME}"
 python3 test_gen_vto_image.py --mode remote --region us-east-1
 
 echo "=== Remote Lambda Test Completed ==="

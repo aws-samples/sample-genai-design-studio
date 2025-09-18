@@ -29,7 +29,7 @@ const defaultVTOParameters: VTOParameters = {
   returnMask: false,
   numberOfImages: 1,
   quality: 'standard',
-  cfgScale: 3.0,
+  cfgScale: 6.5, // default value: 6.5
   seed: -1,
 };
 
@@ -37,7 +37,7 @@ const defaultVTOParameters: VTOParameters = {
 const defaultModelGenerationParameters: ModelGenerationParameters = {
   prompt: '',
   modelId: 'amazon.nova-canvas-v1:0',
-  cfgScale: 8.0,
+  cfgScale: 6.5,
   height: 1024,
   width: 1024,
   numberOfImages: 1,
@@ -66,6 +66,10 @@ const defaultVTOState: VTOState = {
   generatedImages: [],
   selectedImageIndex: 0,
   parameters: defaultVTOParameters,
+  autoClassificationEnabled: true, // バックエンド実装完了により有効化
+  isClassifying: false,
+  classificationError: null,
+  classificationSuccess: null,
   isLoading: false,
   uploadProgress: false,
   processingProgress: false,
@@ -117,6 +121,12 @@ interface AppStore extends AppState {
     processingProgress?: boolean;
     downloadProgress?: boolean;
     error?: string | null;
+  }) => void;
+  setVTOAutoClassificationEnabled: (enabled: boolean) => void;
+  setVTOClassificationState: (state: {
+    isClassifying?: boolean;
+    classificationError?: string | null;
+    classificationSuccess?: string | null;
   }) => void;
   resetVTO: () => void;
 
@@ -219,6 +229,22 @@ export const useAppStore = create<AppStore>((set, _get) => ({
       vto: {
         ...state.vto,
         ...loading,
+      },
+    })),
+
+  setVTOAutoClassificationEnabled: (enabled) =>
+    set((state) => ({
+      vto: {
+        ...state.vto,
+        autoClassificationEnabled: enabled,
+      },
+    })),
+
+  setVTOClassificationState: (classificationState) =>
+    set((state) => ({
+      vto: {
+        ...state.vto,
+        ...classificationState,
       },
     })),
 

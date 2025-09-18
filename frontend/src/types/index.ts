@@ -5,6 +5,7 @@ export interface ImageUploadProps {
   uploadedImage: string | null;
   height?: number;
   allowMask?: boolean;
+  isMaskImage?: boolean;
 }
 
 // VTO (Virtual Try-On) related types
@@ -19,6 +20,11 @@ export interface VTOState {
   processingProgress: boolean;
   downloadProgress: boolean;
   error: string | null;
+  // Auto classification properties
+  autoClassificationEnabled: boolean;
+  isClassifying: boolean;
+  classificationError: string | null;
+  classificationSuccess: string | null;
 }
 
 // VTO Parameters

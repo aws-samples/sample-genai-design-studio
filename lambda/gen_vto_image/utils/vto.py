@@ -17,6 +17,7 @@ from .core import (
     get_image_from_s3_as_base64,
     save_image_to_s3,
     generate_tags_from_image,
+    DEFAULT_VTO_IMG,
 )
 from .translate import translate_to_english
 
@@ -24,9 +25,6 @@ from .translate import translate_to_english
 # Logger setup
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 logger = Logger(service="vto_processing", level=LOG_LEVEL)
-
-# Default model
-DEFAULT_VTO_IMG = "amazon.nova-canvas-v1:0"
 
 
 def generate_vto_images(

@@ -5,15 +5,18 @@ import json
 from typing import Dict, Any
 from datetime import datetime
 from aws_lambda_powertools import Logger
-from .core import BEDROCK_CLIENT, ImageError, save_image_to_s3, VTO_BUCKET
+from .core import (
+    BEDROCK_CLIENT,
+    ImageError,
+    save_image_to_s3,
+    VTO_BUCKET,
+    DEFAULT_GEN_IMG,
+)
 from .translate import translate_to_english
 
 # Logger setup
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 logger = Logger(service="vto_gen_image", level=LOG_LEVEL)
-
-# Default models
-DEFAULT_GEN_IMG = "amazon.nova-canvas-v1:0"
 
 
 def generate_image(

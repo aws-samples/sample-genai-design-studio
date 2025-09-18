@@ -26,7 +26,7 @@ class NovaVTORequest(BaseModel):
         "GARMENT", description="Mask type"
     )
     mask_prompt: Optional[str] = Field("", description="Mask prompt")
-    garment_class: Literal["UPPER_BODY", "LOWER_BODY", "FULL_BODY", "SHOES"] = Field(
+    garment_class: Literal["UPPER_BODY", "LOWER_BODY", "FULL_BODY", "FOOTWEAR", "LONG_SLEEVE_SHIRT", "SHORT_SLEEVE_SHIRT", "NO_SLEEVE_SHIRT", "OTHER_UPPER_BODY", "LONG_PANTS", "SHORT_PANTS", "OTHER_LOWER_BODY", "LONG_DRESS", "SHORT_DRESS", "FULL_BODY_OUTFIT", "OTHER_FULL_BODY", "SHOES", "BOOTS", "OTHER_FOOTWEAR"] = Field(
         "UPPER_BODY", description="Garment class"
     )
     long_sleeve_style: Optional[str] = None
@@ -43,7 +43,7 @@ class NovaVTORequest(BaseModel):
         1, ge=1, le=5, description="Number of images to generate"
     )
     quality: Literal["standard", "premium"] = "premium"
-    cfg_scale: float = Field(3.0, ge=1.0, le=10.0, description="CFG scale")
+    cfg_scale: float = Field(6.5, ge=1.0, le=10.0, description="CFG scale")
     seed: int = Field(-1, description="Seed for random generation")
 
     @field_validator(

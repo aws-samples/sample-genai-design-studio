@@ -2,12 +2,11 @@
 
 import os
 from aws_lambda_powertools import Logger
-from .core import BEDROCK_CLIENT
+from .core import BEDROCK_CLIENT, DEFAULT_TRANSLATION
 
 # Logger setup
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 logger = Logger(service="vto_translate", level=LOG_LEVEL)
-TRANSLATE_MODEL = "us.amazon.nova-micro-v1:0"
 
 
 def translate_to_english(text: str) -> str:
@@ -34,7 +33,7 @@ Translate the following <text> to English. It the <text> is English, you must re
 
         # Call Nova Micro using Converse API
         response = BEDROCK_CLIENT.converse(
-            modelId=TRANSLATE_MODEL,
+            modelId=DEFAULT_TRANSLATION,
             messages=messages,
             inferenceConfig={"maxTokens": 1000, "temperature": 0.1, "topP": 0.9},
         )
