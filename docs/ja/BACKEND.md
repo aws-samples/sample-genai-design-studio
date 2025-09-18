@@ -32,15 +32,17 @@
 ## 推奨テスト実行フロー
 
 ### 事前準備
-1. **AWS認証情報設定**: 以下のように、AWS認証情報を設定
-```
-export AWS_ACCESS_KEY_ID=XXXXX
-export AWS_SECRET_ACCESS_KEY=YYYYY
-export AWS_SESSION_TOKEN=ZZZZZZ
-```
+1. **AWS認証情報設定**: 以下のように、AWS認証情報を環境変数に設定
+  IAM 認証の場合は上2つ、AWS IAM Identity Center 認証の場合は以下3つを設定。
+    ```
+    export AWS_ACCESS_KEY_ID=XXXXX
+    export AWS_SECRET_ACCESS_KEY=YYYYY
+    export AWS_SESSION_TOKEN=ZZZZZZ
+    ```
 
 ### 1. ローカルテスト実行
 まず、ローカル環境でテストを実行して基本的な動作を確認します。
+API 実行テストの場合は `gen_vto_image Lambda Function` を事前にAWS環境にDeployする必要があります。
 
 ### 2. CDK Deploy
 ローカルテストが正常に完了したら、AWSリソースをデプロイします。
