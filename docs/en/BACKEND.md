@@ -31,15 +31,17 @@ Testing includes the following two main components:
 ## Recommended Test Execution Flow
 
 ### Prerequisites
-1. **AWS Credentials Setup**: Set AWS credentials as follows:
-```
-export AWS_ACCESS_KEY_ID=XXXXX
-export AWS_SECRET_ACCESS_KEY=YYYYY
-export AWS_SESSION_TOKEN=ZZZZZZ
-```
+1. **AWS Credentials Setup**: Set AWS credentials as environment variables as follows:
+  For IAM authentication, set the first two variables. For AWS IAM Identity Center authentication, set all three variables below.
+    ```
+    export AWS_ACCESS_KEY_ID=XXXXX
+    export AWS_SECRET_ACCESS_KEY=YYYYY
+    export AWS_SESSION_TOKEN=ZZZZZZ
+    ```
 
 ### 1. Local Test Execution
 First, execute tests in the local environment to verify basic functionality.
+For API execution tests, the `gen_vto_image Lambda Function` must be deployed to the AWS environment beforehand.
 
 ### 2. CDK Deploy
 After local tests complete successfully, deploy AWS resources.
