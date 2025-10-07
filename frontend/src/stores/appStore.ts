@@ -82,6 +82,13 @@ const defaultModelGenerationState: ModelGenerationState = {
   generatedImages: [],
   selectedImageIndex: 0,
   parameters: defaultModelGenerationParameters,
+  promptEnhancement: {
+    originalPrompt: '',
+    enhancedPrompt: '',
+    isEnhancing: false,
+    showEnhanced: false,
+    error: null,
+  },
   isLoading: false,
   error: null,
 };
@@ -136,6 +143,13 @@ interface AppStore extends AppState {
   setModelGenerationParameters: (parameters: Partial<ModelGenerationParameters>) => void;
   setModelGenerationLoadingState: (loading: {
     isLoading?: boolean;
+    error?: string | null;
+  }) => void;
+  setModelGenerationPromptEnhancement: (enhancement: {
+    originalPrompt?: string;
+    enhancedPrompt?: string;
+    isEnhancing?: boolean;
+    showEnhanced?: boolean;
     error?: string | null;
   }) => void;
   resetModelGeneration: () => void;
@@ -286,6 +300,17 @@ export const useAppStore = create<AppStore>((set, _get) => ({
       modelGeneration: {
         ...state.modelGeneration,
         ...loading,
+      },
+    })),
+
+  setModelGenerationPromptEnhancement: (enhancement) =>
+    set((state) => ({
+      modelGeneration: {
+        ...state.modelGeneration,
+        promptEnhancement: {
+          ...state.modelGeneration.promptEnhancement,
+          ...enhancement,
+        },
       },
     })),
 
