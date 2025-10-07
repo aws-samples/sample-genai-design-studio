@@ -46,7 +46,19 @@
     "generating": "Generating...",
     "generatedImages": "Generated Images",
     "emptyMessage": "Generated images will appear here",
-    "loadingMessage": "Generating images..."
+    "loadingMessage": "Generating images...",
+    "enhancePrompt": "Enhance Prompt",
+    "enhancing": "Enhancing...",
+    "enhancedPrompt": "Enhanced Prompt",
+    "originalPrompt": "Original Prompt",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "useOriginal": "Use Original",
+    "useThis": "Use This",
+    "reEnhance": "Re-enhance",
+    "enhancementError": "Failed to enhance prompt. Please try again.",
+    "retry": "Retry"
   },
   "virtualTryOn": {
     "title": "Virtual Try-On",

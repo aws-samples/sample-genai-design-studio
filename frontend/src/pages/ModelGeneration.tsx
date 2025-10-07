@@ -15,6 +15,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ImageDisplay from '../components/ImageDisplay';
 import ImageSizeSelector from '../components/ImageSizeSelector';
+import PromptEnhancementSection from '../components/PromptEnhancementSection';
 import {
   generateObjectNames,
   getPresignedDownloadUrl,
@@ -195,6 +196,11 @@ const ModelGeneration: React.FC = () => {
             value={prompt}
             onChange={(e) => setModelGenerationParameters({ prompt: e.target.value })}
             sx={{ mb: 2 }}
+          />
+
+          <PromptEnhancementSection
+            currentPrompt={prompt}
+            onPromptChange={(newPrompt) => setModelGenerationParameters({ prompt: newPrompt })}
           />
 
           {/* Generation Parameters Accordion */}
