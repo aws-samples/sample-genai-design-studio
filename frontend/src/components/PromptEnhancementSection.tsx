@@ -34,7 +34,7 @@ const PromptEnhancementSection: React.FC<PromptEnhancementSectionProps> = ({
     setModelGenerationPromptEnhancement,
   } = useAppStore();
 
-  const { isEnhancing, showEnhanced, enhancedPrompt, originalPrompt, error } = promptEnhancement;
+  const { isEnhancing, showEnhanced, enhancedPrompt, error } = promptEnhancement;
 
   const handleEnhance = async () => {
     if (!currentPrompt.trim()) return;
