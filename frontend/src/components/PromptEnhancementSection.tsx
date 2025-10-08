@@ -8,14 +8,10 @@ import {
   Stack,
   Collapse,
   Fade,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   TextField,
   Alert,
   CircularProgress,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { usePromptEnhancement } from '../hooks/usePromptEnhancement';
 import { useAppStore } from '../stores/appStore';
 
@@ -135,14 +131,16 @@ const PromptEnhancementSection: React.FC<PromptEnhancementSectionProps> = ({
             sx={{
               p: 2,
               mt: 1,
-              bgcolor: error ? 'error.light' : 'success.light',
+              bgcolor: error ? 'grey.50' : 'grey.100',
+              border: 1,
+              borderColor: error ? 'error.main' : 'grey.300',
             }}
           >
             {error ? (
               <Stack spacing={2}>
                 <Alert severity="error">{error}</Alert>
                 <Button
-                  variant="contained"
+                  variant="outlined"
                   color="error"
                   size="small"
                   onClick={handleRetry}
@@ -156,19 +154,6 @@ const PromptEnhancementSection: React.FC<PromptEnhancementSectionProps> = ({
                 <Typography variant="subtitle2">
                   {t('modelGeneration.enhancedPrompt')}
                 </Typography>
-
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="body2">
-                      {t('modelGeneration.originalPrompt')}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography variant="body2" color="text.secondary">
-                      {originalPrompt}
-                    </Typography>
-                  </AccordionDetails>
-                </Accordion>
 
                 {isEditing ? (
                   <TextField
