@@ -52,6 +52,20 @@ const ImageModal: React.FC<ImageModalProps> = ({
   const currentImage = images[currentIndex];
   const src = currentImage?.base64 ? `data:image/png;base64,${currentImage.base64}` : undefined;
 
+  // Define callbacks before useEffect to satisfy dependencies
+  const handleZoomIn = useCallback(() => {
+    setZoom((prev) => Math.min(prev + 0.5, 5));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom((prev) => Math.max(prev - 0.5, 0.5));
+  }, []);
+
+  const handleResetZoom = useCallback(() => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
   // Reset zoom and position when image changes or modal opens
   useEffect(() => {
     if (open) {
@@ -59,6 +73,16 @@ const ImageModal: React.FC<ImageModalProps> = ({
       setPosition({ x: 0, y: 0 });
     }
   }, [open, currentIndex]);
+
+  // Auto-dismiss snackbar message after 3 seconds
+  useEffect(() => {
+    if (snackbarMessage) {
+      const timer = setTimeout(() => {
+        setSnackbarMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbarMessage]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -94,20 +118,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, currentIndex, images.length, zoom]);
-
-  const handleZoomIn = useCallback(() => {
-    setZoom((prev) => Math.min(prev + 0.5, 5));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom((prev) => Math.max(prev - 0.5, 0.5));
-  }, []);
-
-  const handleResetZoom = useCallback(() => {
-    setZoom(1);
-    setPosition({ x: 0, y: 0 });
-  }, []);
+  }, [open, currentIndex, images.length, onClose, onIndexChange, handleZoomIn, handleZoomOut, handleResetZoom]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
