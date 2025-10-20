@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import Base64Image from './Base64Image';
+import ImageModal from './ImageModal';
 
 interface ImageData {
   base64?: string;
@@ -29,12 +30,24 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   loadingMessage = "画像を生成中...",
   downloadFileName,
 }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    if (images.length > 0 && !loading) {
+      setModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
   return (
     <Box sx={{ flex: { xs: 1, lg: 2 }, maxWidth: { lg: '67%' } }}>
       <Typography variant="h6" gutterBottom>
         {title}
       </Typography>
-      
+
       {/* メイン画像表示エリア */}
       <Box
         sx={{
@@ -46,6 +59,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
           backgroundColor: '#fafafa',
           borderRadius: 1,
           mb: 2,
+          position: 'relative',
         }}
       >
         {images.length === 0 && !loading && (
@@ -68,6 +82,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             error={images[selectedImageIndex]?.error}
             errorMessage={images[selectedImageIndex]?.errorMessage}
             downloadFileName={downloadFileName}
+            onExpandClick={handleOpenModal}
             sx={{
               width: '100%',
               height: '100%',
@@ -102,6 +117,16 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
           ))}
         </Box>
       )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        images={images}
+        currentIndex={selectedImageIndex}
+        onIndexChange={onSelectImage}
+        downloadFileName={downloadFileName}
+      />
     </Box>
   );
 };
