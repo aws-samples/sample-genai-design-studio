@@ -3,7 +3,7 @@ import json
 from typing import Dict
 from botocore.exceptions import ClientError
 from aws_lambda_powertools import Logger
-from app.utils.core import BEDROCK_CLIENT
+from app.utils.core import BEDROCK_CLIENT, MODEL_IDS
 
 logger = Logger(service="prompt_enhancer")
 
@@ -103,7 +103,7 @@ def enhance_prompt(original_prompt: str, language: str = "en") -> Dict[str, str]
         
         # Bedrock呼び出し
         response = BEDROCK_CLIENT.invoke_model(
-            modelId="arn:aws:bedrock:us-east-1:825612589257:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+            modelId=MODEL_IDS["anthropic.claude-3.7-sonnet"],
             body=json.dumps(request_body)
         )
         

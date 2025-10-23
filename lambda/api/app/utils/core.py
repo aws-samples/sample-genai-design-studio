@@ -43,8 +43,11 @@ BEDROCK_CLIENT = boto3.client(
     config=Config(read_timeout=300),
 )
 
-# Model IDs for garment classification
-MODEL_IDS = ["anthropic.claude-3-haiku-20240307-v1:0"]
+# Model IDs
+MODEL_IDS = {
+    "anthropic.claude-3-haiku": "anthropic.claude-3-haiku-20240307-v1:0",
+    "anthropic.claude-3.7-sonnet": "arn:aws:bedrock:us-east-1:825612589257:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+}
 
 
 def get_object_names(group_id: str, user_id: str) -> Tuple[str, str, str]:
