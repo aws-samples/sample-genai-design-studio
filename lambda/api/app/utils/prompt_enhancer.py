@@ -87,7 +87,7 @@ def enhance_prompt(original_prompt: str, language: str = "en") -> Dict[str, str]
     logger.info(f"Enhancing prompt: {original_prompt[:50]}...")
     
     try:
-        # Claude 3.7 Sonnetへのリクエスト構築
+        # Claude 4.5 Haikuへのリクエスト構築
         request_body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 500,
@@ -103,7 +103,7 @@ def enhance_prompt(original_prompt: str, language: str = "en") -> Dict[str, str]
         
         # Bedrock呼び出し
         response = BEDROCK_CLIENT.invoke_model(
-            modelId=MODEL_IDS["anthropic.claude-3.7-sonnet"],
+            modelId=MODEL_IDS["anthropic.claude-4.5-haiku"],
             body=json.dumps(request_body)
         )
         

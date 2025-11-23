@@ -46,7 +46,7 @@ BEDROCK_CLIENT = boto3.client(
 # Model IDs
 MODEL_IDS = {
     "anthropic.claude-3-haiku": "anthropic.claude-3-haiku-20240307-v1:0",
-    "anthropic.claude-3.7-sonnet": "arn:aws:bedrock:us-east-1:825612589257:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "anthropic.claude-4.5-haiku": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 }
 
 
