@@ -35,10 +35,6 @@ fi
 
 # aws account id 取得
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-# s3 bucket name
-BUCKET_NAME="vto-app-$ACCOUNT_ID"
-# create bucket if not exists
-aws s3 mb s3://$BUCKET_NAME || true
 
 # CDK設定ファイルとCDK出力ファイルのパス
 CDK_JSON_FILE="../../cdk/cdk.json"
@@ -70,6 +66,17 @@ if [ -z "$DEPLOYMENT_REGION" ]; then
 fi
 
 echo -e "${GREEN}Deployment Region: $DEPLOYMENT_REGION${NC}"
+
+# s3 bucket name
+BUCKET_NAME="vto-app-$ACCOUNT_ID-$DEPLOYMENT_REGION"
+
+# バケットの存在確認と作成
+if aws s3api head-bucket --bucket $BUCKET_NAME --region $DEPLOYMENT_REGION 2>/dev/null; then
+    echo -e "${GREEN}バケット $BUCKET_NAME は既に存在します${NC}"
+else
+    echo -e "${YELLOW}バケット $BUCKET_NAME を作成中...${NC}"
+    aws s3 mb s3://$BUCKET_NAME --region $DEPLOYMENT_REGION
+fi
 
 # CDK出力ファイルの存在確認
 if [ ! -f "$CDK_OUTPUTS_FILE" ]; then
