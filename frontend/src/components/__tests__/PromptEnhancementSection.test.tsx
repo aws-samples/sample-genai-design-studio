@@ -10,6 +10,16 @@ import { useAppStore } from '../../stores/appStore';
 vi.mock('../../hooks/usePromptEnhancement');
 vi.mock('../../stores/appStore');
 
+// Mock react-i18next with hoisted function
+const mockUseTranslation = vi.hoisted(() => vi.fn());
+vi.mock('react-i18next', async () => {
+  const actual = await vi.importActual('react-i18next');
+  return {
+    ...actual,
+    useTranslation: mockUseTranslation,
+  };
+});
+
 const mockUsePromptEnhancement = vi.mocked(usePromptEnhancement);
 const mockUseAppStore = vi.mocked(useAppStore);
 
@@ -42,6 +52,27 @@ describe('PromptEnhancementSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Default translation mock
+    mockUseTranslation.mockReturnValue({
+      t: (key: string) => {
+        // Return actual English translations for common keys
+        const translations: Record<string, string> = {
+          'modelGeneration.enhancePrompt': 'Enhance Prompt',
+          'modelGeneration.enhancing': 'Enhancing...',
+          'modelGeneration.enhancedPrompt': 'Enhanced Prompt',
+          'modelGeneration.edit': 'Edit',
+          'modelGeneration.save': 'Save',
+          'modelGeneration.cancel': 'Cancel',
+          'modelGeneration.useOriginal': 'Use Original',
+          'modelGeneration.useThis': 'Use This',
+          'modelGeneration.retry': 'Retry',
+          'modelGeneration.enhancementError': 'Failed to enhance prompt. Please try again.',
+        };
+        return translations[key] || key;
+      },
+      i18n: { language: 'en' },
+    });
     
     mockUsePromptEnhancement.mockReturnValue({
       enhancePrompt: mockEnhancePrompt,
@@ -397,17 +428,25 @@ describe('PromptEnhancementSection', () => {
   });
 
   it('uses Japanese language when i18n is set to ja', async () => {
-    // Mock i18n language
-    const mockI18n = {
-      language: 'ja',
-    };
-
-    vi.doMock('react-i18next', () => ({
-      useTranslation: () => ({
-        t: (key: string) => key,
-        i18n: mockI18n,
-      }),
-    }));
+    // Mock Japanese translation
+    mockUseTranslation.mockReturnValue({
+      t: (key: string) => {
+        const translations: Record<string, string> = {
+          'modelGeneration.enhancePrompt': 'プロンプトを改善',
+          'modelGeneration.enhancing': '改善中...',
+          'modelGeneration.enhancedPrompt': '改善されたプロンプト',
+          'modelGeneration.edit': '編集',
+          'modelGeneration.save': '保存',
+          'modelGeneration.cancel': 'キャンセル',
+          'modelGeneration.useOriginal': '元のプロンプトを使用',
+          'modelGeneration.useThis': 'これを使用',
+          'modelGeneration.retry': '再試行',
+          'modelGeneration.enhancementError': 'プロンプトの改善に失敗しました。もう一度お試しください。',
+        };
+        return translations[key] || key;
+      },
+      i18n: { language: 'ja' },
+    });
 
     mockEnhancePrompt.mockResolvedValue({
       enhanced_prompt: 'enhanced test prompt',
@@ -475,7 +514,7 @@ describe('PromptEnhancementSection', () => {
       expect(mockSetModelGenerationPromptEnhancement).toHaveBeenCalledWith({
         isEnhancing: false,
         showEnhanced: true,
-        error: 'modelGeneration.enhancementError',
+        error: 'Failed to enhance prompt. Please try again.',
       });
     });
   });
