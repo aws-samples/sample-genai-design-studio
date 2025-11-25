@@ -4,6 +4,30 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+apiClient.interceptors.request.use(async (config) => {
+  try {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+  }
+  
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 interface EnhancePromptRequest {
   prompt: string;
   language?: string;
@@ -23,19 +47,9 @@ export const usePromptEnhancement = () => {
     setError(null);
 
     try {
-      // 認証トークンを取得
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
-
-      const response = await axios.post<EnhancePromptResponse>(
-        `${API_BASE_URL}/enhance-prompt`,
-        { prompt, language } as EnhancePromptRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        }
+      const response = await apiClient.post<EnhancePromptResponse>(
+        '/enhance-prompt',
+        { prompt, language } as EnhancePromptRequest
       );
 
       setIsEnhancing(false);

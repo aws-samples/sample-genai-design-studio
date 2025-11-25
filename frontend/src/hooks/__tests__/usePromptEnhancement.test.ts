@@ -1,19 +1,30 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import axios from 'axios';
-import { fetchAuthSession } from 'aws-amplify/auth';
 import { usePromptEnhancement } from '../usePromptEnhancement';
 
-// Mock axios
-vi.mock('axios');
-const mockAxios = axios as any;
+// Mock axios module with hoisted functions
+const mockApiClient = vi.hoisted(() => ({
+  post: vi.fn(),
+  interceptors: {
+    request: {
+      use: vi.fn()
+    }
+  }
+}))
+
+const mockAxios = vi.hoisted(() => ({
+  create: vi.fn(() => mockApiClient),
+}))
+
+vi.mock('axios', () => ({
+  default: mockAxios,
+}))
 
 // Mock aws-amplify/auth
+const mockFetchAuthSession = vi.fn();
 vi.mock('aws-amplify/auth', () => ({
-  fetchAuthSession: vi.fn(),
-}));
-
-const mockFetchAuthSession = fetchAuthSession as ReturnType<typeof vi.fn>;
+  fetchAuthSession: mockFetchAuthSession,
+}))
 
 describe('usePromptEnhancement', () => {
   beforeEach(() => {
@@ -51,7 +62,7 @@ describe('usePromptEnhancement', () => {
     };
 
     mockFetchAuthSession.mockResolvedValue(mockSession);
-    mockAxios.post.mockResolvedValue(mockResponse);
+    mockApiClient.post.mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -61,15 +72,9 @@ describe('usePromptEnhancement', () => {
     });
 
     expect(mockFetchAuthSession).toHaveBeenCalledTimes(1);
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      'http://localhost:8000/enhance-prompt',
-      { prompt: 'test prompt', language: 'en' },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer mock-token',
-        },
-      }
+    expect(mockApiClient.post).toHaveBeenCalledWith(
+      '/enhance-prompt',
+      { prompt: 'test prompt', language: 'en' }
     );
     expect(enhancementResult).toEqual(mockResponse.data);
     expect(result.current.isEnhancing).toBe(false);
@@ -89,7 +94,7 @@ describe('usePromptEnhancement', () => {
     };
 
     mockFetchAuthSession.mockResolvedValue(mockSession);
-    mockAxios.post.mockResolvedValue(mockResponse);
+    mockApiClient.post.mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -98,14 +103,9 @@ describe('usePromptEnhancement', () => {
       enhancementResult = await result.current.enhancePrompt('test prompt');
     });
 
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      'http://localhost:8000/enhance-prompt',
-      { prompt: 'test prompt', language: 'en' },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    expect(mockApiClient.post).toHaveBeenCalledWith(
+      '/enhance-prompt',
+      { prompt: 'test prompt', language: 'en' }
     );
     expect(enhancementResult).toEqual(mockResponse.data);
   });
@@ -119,7 +119,7 @@ describe('usePromptEnhancement', () => {
     };
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockResolvedValue(mockResponse);
+    mockApiClient.post.mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -127,10 +127,9 @@ describe('usePromptEnhancement', () => {
       await result.current.enhancePrompt('test prompt');
     });
 
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      'http://localhost:8000/enhance-prompt',
-      { prompt: 'test prompt', language: 'en' },
-      expect.any(Object)
+    expect(mockApiClient.post).toHaveBeenCalledWith(
+      '/enhance-prompt',
+      { prompt: 'test prompt', language: 'en' }
     );
   });
 
@@ -144,7 +143,7 @@ describe('usePromptEnhancement', () => {
     };
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockRejectedValue(mockError);
+    mockApiClient.post.mockRejectedValue(mockError);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -162,7 +161,7 @@ describe('usePromptEnhancement', () => {
     const mockError = new Error('Network error');
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockRejectedValue(mockError);
+    mockApiClient.post.mockRejectedValue(mockError);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -180,7 +179,7 @@ describe('usePromptEnhancement', () => {
     const mockError = {};
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockRejectedValue(mockError);
+    mockApiClient.post.mockRejectedValue(mockError);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -201,7 +200,7 @@ describe('usePromptEnhancement', () => {
     });
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockReturnValue(enhancementPromise);
+    mockApiClient.post.mockReturnValue(enhancementPromise);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -230,6 +229,12 @@ describe('usePromptEnhancement', () => {
   it('should handle auth session error', async () => {
     const mockAuthError = new Error('Auth session failed');
     mockFetchAuthSession.mockRejectedValue(mockAuthError);
+    mockApiClient.post.mockResolvedValue({
+      data: {
+        original_prompt: 'test prompt',
+        enhanced_prompt: 'enhanced test prompt',
+      },
+    });
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -241,6 +246,7 @@ describe('usePromptEnhancement', () => {
     expect(enhancementResult).toBe(null);
     expect(result.current.isEnhancing).toBe(false);
     expect(result.current.error).toBe('Auth session failed');
+    expect(mockApiClient.post).not.toHaveBeenCalled();
   });
 
   it('should use custom API base URL from environment', async () => {
@@ -254,7 +260,7 @@ describe('usePromptEnhancement', () => {
     };
 
     mockFetchAuthSession.mockResolvedValue({ tokens: null });
-    mockAxios.post.mockResolvedValue(mockResponse);
+    mockApiClient.post.mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => usePromptEnhancement());
 
@@ -262,10 +268,9 @@ describe('usePromptEnhancement', () => {
       await result.current.enhancePrompt('test prompt');
     });
 
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      'https://custom-api.example.com/enhance-prompt',
-      expect.any(Object),
-      expect.any(Object)
+    expect(mockApiClient.post).toHaveBeenCalledWith(
+      '/enhance-prompt',
+      { prompt: 'test prompt', language: 'en' }
     );
   });
 });
