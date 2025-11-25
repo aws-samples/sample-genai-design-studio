@@ -184,9 +184,12 @@ def classify_garment_image(image_bytes: bytes):
 
         last_error = None
 
-        # 複数のモデルIDで試行
-        for model_id in MODEL_IDS:
+        # 複数のモデルで試行（現在はHaiku 3のみ、将来的に追加可能）
+        model_keys = ["anthropic.claude-3-haiku"]
+        
+        for model_key in model_keys:
             try:
+                model_id = MODEL_IDS[model_key]
                 logger.info(f"Trying classification with model: {model_id}")
                 result = call_claude_classification(image_bytes, model_id)
 
@@ -195,9 +198,9 @@ def classify_garment_image(image_bytes: bytes):
             except Exception as e:
                 last_error = f"モデル {model_id}: {str(e)}"
                 logger.warning(f"Classification failed with {model_id}: {str(e)}")
-                continue  # 次のモデルIDを試行
+                continue  # 次のモデルを試行
 
-        # すべてのモデルIDで失敗した場合
+        # すべてのモデルで失敗した場合
         error_msg = f"すべてのモデルで失敗: {last_error}"
         logger.error(error_msg)
         return {"success": False, "error": error_msg}

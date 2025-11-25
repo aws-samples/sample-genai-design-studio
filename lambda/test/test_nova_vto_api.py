@@ -2217,6 +2217,76 @@ class NovaVTOAPITest(unittest.TestCase):
 
         logger.info("Garment classification empty group_id test passed")
 
+    def test_prompt_enhancement_english(self):
+        """Test prompt enhancement with English input"""
+        logger.info("Testing prompt enhancement - English")
+        
+        request_body = {
+            "prompt": "Female model wearing white shirt",
+            "language": "en"
+        }
+        
+        response = requests.post(
+            f"{self.base_url}/enhance-prompt",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60
+        )
+        
+        logger.info(f"Prompt enhancement English response status: {response.status_code}")
+        logger.info(f"Prompt enhancement English response body: {response.text}")
+        
+        # 基本検証
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.json()
+        self.assertIn("original_prompt", data)
+        self.assertIn("enhanced_prompt", data)
+        self.assertEqual(data["original_prompt"], "Female model wearing white shirt")
+        
+        # 改善効果の確認
+        enhanced = data["enhanced_prompt"]
+        self.assertGreater(len(enhanced), len(request_body["prompt"]))
+        
+        logger.info(f"Original: {data['original_prompt']}")
+        logger.info(f"Enhanced: {enhanced}")
+        logger.info("Prompt enhancement English test passed")
+
+    def test_prompt_enhancement_japanese(self):
+        """Test prompt enhancement with Japanese input"""
+        logger.info("Testing prompt enhancement - Japanese")
+        
+        request_body = {
+            "prompt": "白いシャツを着た女性モデル",
+            "language": "ja"
+        }
+        
+        response = requests.post(
+            f"{self.base_url}/enhance-prompt",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60
+        )
+        
+        logger.info(f"Prompt enhancement Japanese response status: {response.status_code}")
+        logger.info(f"Prompt enhancement Japanese response body: {response.text}")
+        
+        # 基本検証
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.json()
+        self.assertIn("original_prompt", data)
+        self.assertIn("enhanced_prompt", data)
+        self.assertEqual(data["original_prompt"], "白いシャツを着た女性モデル")
+        
+        # 改善効果の確認
+        enhanced = data["enhanced_prompt"]
+        self.assertGreater(len(enhanced), len(request_body["prompt"]))
+        
+        logger.info(f"Original: {data['original_prompt']}")
+        logger.info(f"Enhanced: {enhanced}")
+        logger.info("Prompt enhancement Japanese test passed")
+
 
 def main():
     """Main function - Execute unittest"""
