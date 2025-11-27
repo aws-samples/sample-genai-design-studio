@@ -31,7 +31,7 @@ describe('Settings', () => {
   it('toggles dark mode setting', () => {
     render(<Settings />)
     
-    const darkModeSwitch = screen.getAllByRole('checkbox')[0]
+    const darkModeSwitch = screen.getAllByRole('switch')[0]
     expect(darkModeSwitch).not.toBeChecked()
     
     fireEvent.click(darkModeSwitch)
@@ -44,7 +44,7 @@ describe('Settings', () => {
   it('toggles notifications setting', () => {
     render(<Settings />)
     
-    const notificationsSwitch = screen.getAllByRole('checkbox')[1]
+    const notificationsSwitch = screen.getAllByRole('switch')[1]
     expect(notificationsSwitch).toBeChecked() // Default is true
     
     fireEvent.click(notificationsSwitch)
@@ -57,7 +57,7 @@ describe('Settings', () => {
   it('toggles auto-save setting', () => {
     render(<Settings />)
     
-    const autoSaveSwitch = screen.getAllByRole('checkbox')[2]
+    const autoSaveSwitch = screen.getAllByRole('switch')[2]
     expect(autoSaveSwitch).toBeChecked() // Default is true
     
     fireEvent.click(autoSaveSwitch)
@@ -70,7 +70,7 @@ describe('Settings', () => {
   it('maintains independent state for each setting', () => {
     render(<Settings />)
     
-    const [darkModeSwitch, notificationsSwitch, autoSaveSwitch] = screen.getAllByRole('checkbox')
+    const [darkModeSwitch, notificationsSwitch, autoSaveSwitch] = screen.getAllByRole('switch')
     
     // Initial states
     expect(darkModeSwitch).not.toBeChecked()
