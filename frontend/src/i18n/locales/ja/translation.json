@@ -46,7 +46,19 @@
     "generating": "生成中...",
     "generatedImages": "生成画像",
     "emptyMessage": "生成された画像がここに表示されます",
-    "loadingMessage": "画像を生成中..."
+    "loadingMessage": "画像を生成中...",
+    "enhancePrompt": "プロンプトを改善",
+    "enhancing": "改善中...",
+    "enhancedPrompt": "改善されたプロンプト",
+    "originalPrompt": "元のプロンプト",
+    "edit": "編集",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "useOriginal": "元のプロンプトを使用",
+    "useThis": "これを使用",
+    "reEnhance": "再改善",
+    "enhancementError": "プロンプトの改善に失敗しました。もう一度お試しください。",
+    "retry": "再試行"
   },
   "virtualTryOn": {
     "title": "バーチャル試着",

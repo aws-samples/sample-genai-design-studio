@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, CircularProgress, Typography, IconButton, Snackbar, Alert } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material';
-import { Image as ImageIcon, ErrorOutline as ErrorIcon, Download as DownloadIcon, ContentCopy as CopyIcon } from '@mui/icons-material';
+import { Image as ImageIcon, ErrorOutline as ErrorIcon, Download as DownloadIcon, ContentCopy as CopyIcon, ZoomIn as ZoomInIcon } from '@mui/icons-material';
 import { copyImageToClipboard, isClipboardSupported } from '../utils/clipboard';
 
 interface Base64ImageProps {
@@ -13,6 +13,7 @@ interface Base64ImageProps {
   downloadFileName?: string;
   clickable?: boolean;
   onClick?: () => void;
+  onExpandClick?: () => void;
   sx?: SxProps<Theme>;
 }
 
@@ -59,6 +60,13 @@ const Base64Image: React.FC<Base64ImageProps> = (props) => {
       setSnackbarMessage('Failed to copy image to clipboard');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
+    }
+  };
+
+  const handleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (props.onExpandClick) {
+      props.onExpandClick();
     }
   };
 
@@ -131,6 +139,26 @@ const Base64Image: React.FC<Base64ImageProps> = (props) => {
                 gap: 0.5,
               }}
             >
+              {/* Expand Button */}
+              {props.onExpandClick && (
+                <IconButton
+                  onClick={handleExpand}
+                  sx={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    },
+                    width: 32,
+                    height: 32,
+                  }}
+                  size="small"
+                  title="Enlarge image"
+                >
+                  <ZoomInIcon fontSize="small" />
+                </IconButton>
+              )}
+
               {/* Copy Button */}
               <IconButton
                 onClick={handleCopy}
@@ -148,7 +176,7 @@ const Base64Image: React.FC<Base64ImageProps> = (props) => {
               >
                 <CopyIcon fontSize="small" />
               </IconButton>
-              
+
               {/* Download Button */}
               <IconButton
                 onClick={handleDownload}

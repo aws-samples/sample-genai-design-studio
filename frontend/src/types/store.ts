@@ -86,6 +86,15 @@ export interface ModelGenerationState {
   // Parameters
   parameters: ModelGenerationParameters;
   
+  // Prompt Enhancement
+  promptEnhancement: {
+    originalPrompt: string;
+    enhancedPrompt: string;
+    isEnhancing: boolean;
+    showEnhanced: boolean;
+    error: string | null;
+  };
+  
   // Loading states
   isLoading: boolean;
   error: string | null;

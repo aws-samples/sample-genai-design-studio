@@ -13,6 +13,7 @@ from app.routes.nova_model import router as nova_model_router
 from app.routes.background_replacement import router as background_replacement_router
 from app.routes.garment_classification import router as garment_classification_router
 from app.routes.utils import router as utils_router
+from app.routes.enhance_prompt import router as enhance_prompt_router
 
 
 # ロギングの設定
@@ -41,6 +42,7 @@ app.include_router(nova_model_router)
 app.include_router(background_replacement_router)
 app.include_router(garment_classification_router)
 app.include_router(utils_router)
+app.include_router(enhance_prompt_router)
 
 
 # Exception handler for Pydantic validation errors
