@@ -1527,6 +1527,304 @@ class NovaVTOAPITest(unittest.TestCase):
 
         logger.info("Nova Model with 5 images test passed")
 
+    def test_nova2_text_to_image(self):
+        """Test Nova 2 Omni text-to-image generation workflow"""
+        logger.info("Testing Nova 2 Omni text-to-image generation workflow")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names for output images
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        number_of_images = 1
+        output_object_names = []
+        for i in range(number_of_images):
+            object_name = f"{self.group_id}/{self.user_id}/gen_image/{date_folder}/{uid}/nova2_result_{i}.png"
+            output_object_names.append(object_name)
+
+        logger.info(f"Generated output object_names: {output_object_names}")
+
+        # Step 2: Process Nova 2 text-to-image generation
+        logger.info("Step 2: Processing Nova 2 text-to-image generation")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "A serene Japanese garden with cherry blossoms and a traditional tea house",
+            "model_id": "nova2",  # Nova 2 Omni model
+            "height": 1024,
+            "width": 1024,
+            "number_of_images": number_of_images,
+        }
+
+        logger.info(f"Nova 2 request body: {request_body}")
+
+        model_response = requests.post(
+            f"{self.base_url}/vto/nova/model",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(f"Nova 2 response status: {model_response.status_code}")
+        logger.info(f"Nova 2 response body: {model_response.text}")
+
+        # Check status code
+        self.assertEqual(model_response.status_code, 200)
+
+        # Check response data
+        model_data = model_response.json()
+        self.assertIsInstance(model_data, dict)
+
+        # Check required fields
+        required_fields = ["request_id", "status"]
+        for field in required_fields:
+            self.assertIn(field, model_data)
+            self.assertIsInstance(model_data[field], str)
+            self.assertGreater(len(model_data[field]), 0)
+
+        # Check status is expected value
+        self.assertEqual(model_data["status"], "accepted")
+
+        # Check object_names exists
+        self.assertIn("object_names", model_data)
+        self.assertIsInstance(model_data["object_names"], list)
+        self.assertGreater(len(model_data["object_names"]), 0)
+
+        logger.info(
+            f"Nova 2 workflow completed successfully. Request ID: {model_data['request_id']}"
+        )
+
+        # Step 3: Test downloading generated images (remote mode only)
+        if self.remote:
+            logger.info(
+                "Step 3: Testing download of generated Nova 2 images using presigned URLs"
+            )
+
+            # Wait for image generation (Nova 2 may take longer)
+            logger.info("Waiting 45 seconds for Nova 2 image generation...")
+            time.sleep(45)
+
+            # Download generated images using presigned URLs
+            for object_name in model_data["object_names"]:
+                with self.subTest(object_name=object_name):
+                    logger.info(f"Testing presigned URL download for: {object_name}")
+
+                    # Download using presigned URL
+                    download_success = self._download_image_via_presigned_url(
+                        object_name
+                    )
+                    self.assertTrue(
+                        download_success,
+                        f"Failed to download Nova 2 image: {object_name}",
+                    )
+
+                    logger.info(
+                        f"Successfully downloaded Nova 2 image: {object_name}"
+                    )
+
+            logger.info("Nova 2 image download via presigned URLs test passed")
+
+        logger.info("Nova 2 text-to-image generation test passed")
+
+    def test_nova2_japanese_prompt(self):
+        """Test Nova 2 with Japanese prompt translation (Task 6.6)"""
+        logger.info("Testing Nova 2 with Japanese prompt translation")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names for output images
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        number_of_images = 1
+        output_object_names = []
+        for i in range(number_of_images):
+            object_name = f"{self.group_id}/{self.user_id}/gen_image/{date_folder}/{uid}/nova2_japanese_{i}.png"
+            output_object_names.append(object_name)
+
+        logger.info(f"Generated output object_names: {output_object_names}")
+
+        # Step 2: Process Nova 2 with Japanese prompt
+        logger.info("Step 2: Processing Nova 2 with Japanese prompt")
+
+        japanese_prompt = "美しい日本庭園、桜の木と伝統的な茶室がある風景"
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": japanese_prompt,
+            "model_id": "nova2",
+            "height": 1024,
+            "width": 1024,
+            "number_of_images": number_of_images,
+        }
+
+        logger.info(f"Nova 2 Japanese prompt request body: {request_body}")
+        logger.info(f"Japanese prompt: {japanese_prompt}")
+
+        model_response = requests.post(
+            f"{self.base_url}/vto/nova/model",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(f"Nova 2 Japanese response status: {model_response.status_code}")
+        logger.info(f"Nova 2 Japanese response body: {model_response.text}")
+
+        # Check status code
+        self.assertEqual(model_response.status_code, 200)
+
+        # Check response data
+        model_data = model_response.json()
+        self.assertIsInstance(model_data, dict)
+        self.assertEqual(model_data["status"], "accepted")
+
+        logger.info("Nova 2 Japanese prompt translation test passed")
+
+    def test_nova2_multiple_images_parallel(self):
+        """Test Nova 2 multiple images parallel generation (Task 6.5)"""
+        logger.info("Testing Nova 2 multiple images parallel generation")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names for output images
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        number_of_images = 3  # Test with 3 images
+        output_object_names = []
+        for i in range(number_of_images):
+            object_name = f"{self.group_id}/{self.user_id}/gen_image/{date_folder}/{uid}/nova2_parallel_{i}.png"
+            output_object_names.append(object_name)
+
+        logger.info(f"Generated output object_names: {output_object_names}")
+
+        # Step 2: Process Nova 2 with multiple images
+        logger.info(f"Step 2: Processing Nova 2 with {number_of_images} images (parallel)")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "A beautiful mountain landscape with a lake",
+            "model_id": "nova2",
+            "height": 1024,
+            "width": 1024,
+            "number_of_images": number_of_images,
+        }
+
+        logger.info(f"Nova 2 parallel request body: {request_body}")
+
+        model_response = requests.post(
+            f"{self.base_url}/vto/nova/model",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(f"Nova 2 parallel response status: {model_response.status_code}")
+        logger.info(f"Nova 2 parallel response body: {model_response.text}")
+
+        # Check status code
+        self.assertEqual(model_response.status_code, 200)
+
+        # Check response data
+        model_data = model_response.json()
+        self.assertIsInstance(model_data, dict)
+        self.assertEqual(model_data["status"], "accepted")
+
+        # Check that all object names are returned
+        self.assertIn("object_names", model_data)
+        self.assertEqual(len(model_data["object_names"]), number_of_images)
+
+        logger.info(
+            f"Nova 2 parallel generation accepted for {number_of_images} images"
+        )
+
+        # Step 3: Test downloading generated images (remote mode only)
+        if self.remote:
+            logger.info(
+                f"Step 3: Testing download of {number_of_images} Nova 2 images (parallel generation)"
+            )
+
+            # Wait for parallel image generation (may take longer)
+            logger.info("Waiting 60 seconds for Nova 2 parallel image generation...")
+            time.sleep(60)
+
+            # Download all generated images
+            for object_name in model_data["object_names"]:
+                with self.subTest(object_name=object_name):
+                    logger.info(f"Testing presigned URL download for: {object_name}")
+
+                    download_success = self._download_image_via_presigned_url(
+                        object_name
+                    )
+                    self.assertTrue(
+                        download_success,
+                        f"Failed to download Nova 2 parallel image: {object_name}",
+                    )
+
+                    logger.info(
+                        f"Successfully downloaded Nova 2 parallel image: {object_name}"
+                    )
+
+            logger.info("Nova 2 parallel image download test passed")
+
+        logger.info("Nova 2 multiple images parallel generation test passed")
+
     def test_nova_model_six_images_error(self):
         """Test Nova Model with 6 images generation (should fail - exceeds limit)"""
         logger.info("Testing Nova Model with 6 images generation (expecting error)")

@@ -1427,6 +1427,94 @@ class GenVTOImageTest(unittest.TestCase):
         logger.info(f"Background replacement processing accepted: {body['message']}")
         logger.info("Background replacement with S3 save test passed")
 
+    def test_nova2_text_to_image_generation(self):
+        """Test Nova 2 Omni text-to-image generation"""
+        logger.info("Testing Nova 2 Omni text-to-image generation")
+
+        # Create Lambda event for Nova 2 text-to-image generation
+        event = {
+            "text_to_image_params": {
+                "prompt": "A serene Japanese garden with cherry blossoms and a traditional tea house",
+                "model_id": "nova2",  # Nova 2 Omni model
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_text_to_image_result_0.png"],
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+
+        logger.info("Invoking Lambda function for Nova 2 text-to-image generation...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check response structure
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 200)
+
+        # Parse body
+        body = json.loads(result["body"])
+        self.assertIn("message", body)
+        self.assertIn("status", body)
+
+        # Check response structure for async processing
+        self.assertEqual(body["status"], "completed")
+        self.assertIn("completed", body["message"])
+
+        logger.info(f"Nova 2 processing accepted: {body['message']}")
+        logger.info("Nova 2 text-to-image generation test passed")
+
+    def test_nova2_japanese_prompt_translation(self):
+        """Test Nova 2 with Japanese prompt translation (Task 6.6)"""
+        logger.info("Testing Nova 2 with Japanese prompt translation")
+
+        # Japanese prompt
+        japanese_prompt = "美しい日本庭園、桜の木と伝統的な茶室がある風景"
+
+        # Create Lambda event for Nova 2 with Japanese prompt
+        event = {
+            "text_to_image_params": {
+                "prompt": japanese_prompt,
+                "model_id": "nova2",
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_japanese_prompt_result_0.png"],
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+        logger.info(f"Japanese prompt: {japanese_prompt}")
+
+        logger.info("Invoking Lambda function for Nova 2 with Japanese prompt...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check response structure
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 200)
+
+        # Parse body
+        body = json.loads(result["body"])
+        self.assertIn("message", body)
+        self.assertIn("status", body)
+
+        # Check response structure for async processing
+        self.assertEqual(body["status"], "completed")
+        self.assertIn("completed", body["message"])
+
+        logger.info(f"Nova 2 Japanese prompt processing accepted: {body['message']}")
+        logger.info("Nova 2 Japanese prompt translation test passed")
+
 
 def main():
     """Main function - Execute unittest"""
