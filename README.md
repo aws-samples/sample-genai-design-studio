@@ -9,12 +9,18 @@ This sample is a Virtual Try-On solution leveraging image generation AI (Amazon 
 ### 1. Model Generation
 A feature that generates virtual model images by specifying body pose, appearance characteristics, and shooting environment as text prompts.
 
+**Supported Models:**
+- **Amazon Nova Canvas** (default): High-quality image generation with detailed parameter control
+- **Amazon Nova 2 Omni**: Next-generation multimodal model with faster parallel generation
+
 **Key Features:**
 - **Text Input**: Detailed image description specification through prompts in various languages including English and Japanese
+- **Model Selection**: Choose between Nova Canvas or Nova 2 Omni via `model_id` parameter
 - **Generation Parameters**:
-  - Quality control through CFG Scale (1.1-10.0)
+  - Quality control through CFG Scale (1.1-10.0) - Nova Canvas only
   - Image size selection (1024x1024, 768x1344, etc.)
   - Multiple image simultaneous generation (up to 5 images)
+  - Nova 2: Parallel execution for faster multi-image generation
 
 ### 2. Virtual Try-On
 Virtual try-on functionality using Amazon Nova Canvas. You can use model images created in 1. Model Generation or existing images to dress up while maintaining the details of clothing images. You can also specify details such as jacket open/closed and shirt in/out.
