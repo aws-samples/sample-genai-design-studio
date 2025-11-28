@@ -28,6 +28,21 @@ NOVA_MODEL_IDS = {
     "lite": "us.amazon.nova-lite-v1:0",
     "canvas": "amazon.nova-canvas-v1:0",
     "micro": "us.amazon.nova-micro-v1:0",
+    "nova2": "us.amazon.nova-2-omni-v1:0",  # Nova 2 Omni
+}
+
+# Model ID mapping for API to Bedrock
+NOVA_MODEL_MAPPING = {
+    "nova2": "us.amazon.nova-2-omni-v1:0",
+    "amazon.nova-canvas-v1:0": "amazon.nova-canvas-v1:0",
+    "amazon.titan-image-generator-v2:0": "amazon.titan-image-generator-v2:0",
+}
+
+# Nova 2 default inference configuration
+NOVA2_DEFAULT_INFERENCE_CONFIG = {
+    "temperature": 0,      # Deterministic generation
+    "topP": 1,             # Consider all tokens
+    "maxTokens": 10000     # Sufficient token count
 }
 
 # DEFAULT MODELS
@@ -49,6 +64,46 @@ class ImageError(Exception):
     """Exception class for image generation related errors"""
 
     pass
+
+
+def get_bedrock_model_id(api_model_id: str) -> str:
+    """
+    Map API model ID to Bedrock model ID
+    
+    Args:
+        api_model_id: Model ID specified in API request
+        
+    Returns:
+        Bedrock model ID to use for API calls
+        
+    Examples:
+        >>> get_bedrock_model_id("nova2")
+        'us.amazon.nova-2-omni-v1:0'
+        >>> get_bedrock_model_id("amazon.nova-canvas-v1:0")
+        'amazon.nova-canvas-v1:0'
+    """
+    bedrock_model_id = NOVA_MODEL_MAPPING.get(api_model_id, api_model_id)
+    logger.info(f"Model ID mapping: {api_model_id} -> {bedrock_model_id}")
+    return bedrock_model_id
+
+
+def is_nova2_model(model_id: str) -> bool:
+    """
+    Check if the model ID is Nova 2 Omni
+    
+    Args:
+        model_id: API model ID
+        
+    Returns:
+        True if Nova 2 Omni, False otherwise
+        
+    Examples:
+        >>> is_nova2_model("nova2")
+        True
+        >>> is_nova2_model("amazon.nova-canvas-v1:0")
+        False
+    """
+    return model_id == "nova2"
 
 
 def pil_image_to_base64(pil_image: Image.Image) -> str:
