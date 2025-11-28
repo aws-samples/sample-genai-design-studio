@@ -35,6 +35,13 @@
   },
   "modelGeneration": {
     "title": "Model Generation",
+    "modelSelection": "Model Selection",
+    "modelOptions": {
+      "novaCanvas": "Nova Canvas (Default)",
+      "novaCanvasDescription": "Standard image generation model",
+      "nova2": "Nova 2",
+      "nova2Description": "Advanced multimodal model"
+    },
     "textPrompt": "Text Prompt",
     "describeImage": "Describe the image you want to generate",
     "examplePrompt": "e.g., 'A beautiful landscape with mountains and a lake at sunset'",

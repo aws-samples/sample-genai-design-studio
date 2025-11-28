@@ -11,6 +11,11 @@ import {
   AccordionSummary,
   AccordionDetails,
   Alert,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ImageDisplay from '../components/ImageDisplay';
@@ -175,6 +180,20 @@ const ModelGeneration: React.FC = () => {
     }
   };
 
+  // Model selection options
+  const MODEL_OPTIONS = [
+    {
+      value: 'amazon.nova-canvas-v1:0',
+      label: t('modelGeneration.modelOptions.novaCanvas'),
+      description: t('modelGeneration.modelOptions.novaCanvasDescription'),
+    },
+    {
+      value: 'nova2',
+      label: t('modelGeneration.modelOptions.nova2'),
+      description: t('modelGeneration.modelOptions.nova2Description'),
+    },
+  ];
+
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -184,6 +203,39 @@ const ModelGeneration: React.FC = () => {
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
         {/* Left Side - Prompt and Parameters (1/3) */}
         <Box sx={{ flex: { xs: 1, lg: 1 }, maxWidth: { lg: '33%' } }}>
+          {/* Model Selection */}
+          <FormControl component="fieldset" sx={{ mb: 3 }}>
+            <FormLabel component="legend">
+              <Typography variant="h6">
+                {t('modelGeneration.modelSelection')}
+              </Typography>
+            </FormLabel>
+            <RadioGroup
+              value={modelId}
+              onChange={(e) => setModelGenerationParameters({ modelId: e.target.value })}
+              sx={{ mt: 1 }}
+            >
+              {MODEL_OPTIONS.map((option) => (
+                <FormControlLabel
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography variant="body1" fontWeight="medium">
+                        {option.label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.description}
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ mb: 1, alignItems: 'flex-start' }}
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
+
           <Typography variant="h6" gutterBottom>
             {t('modelGeneration.textPrompt')}
           </Typography>
