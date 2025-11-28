@@ -1,7 +1,12 @@
-*.clinerules/
-*clinetasks/
 lambda/test/test_data/output/
 *security_review/
+
+# coding agent
+*.clinerules/*
+*clinetasks/*
+*.amazonq/*
+*.kiro/*
+*.coding/*
 
 # CDK Context & Staging files
 cdk.context.json
