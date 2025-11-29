@@ -92,7 +92,7 @@ describe('ModelGeneration', () => {
       object_names: ['test/image.png'],
     })
     
-    const { container } = renderModelGeneration()
+    renderModelGeneration()
     
     // Ensure Nova Canvas is selected (it's the default)
     const radioButtons = screen.getAllByRole('radio')
