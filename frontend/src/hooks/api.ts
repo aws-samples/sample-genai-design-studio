@@ -285,6 +285,43 @@ export const processBackgroundReplacement = async (params: {
   }
 };
 
+// Image Edit処理APIを呼び出す
+export const processImageEdit = async (params: {
+  groupId: string;
+  userId: string;
+  dateFolder: string;
+  timestamp: string;
+  uid: string;
+  objectNames: string[];
+  prompt: string;
+  inputImageObjectName: string;
+  modelId?: string;
+  numberOfImages?: number;
+  height?: number;
+  width?: number;
+}) => {
+  try {
+    const response = await apiClient.post('/vto/nova/edit', {
+      group_id: params.groupId,
+      user_id: params.userId,
+      date_folder: params.dateFolder,
+      timestamp: params.timestamp,
+      uid: params.uid,
+      object_names: params.objectNames,
+      prompt: params.prompt,
+      input_image_object_name: params.inputImageObjectName,
+      model_id: params.modelId || 'nova2',
+      number_of_images: params.numberOfImages || 1,
+      height: params.height || 512,
+      width: params.width || 512,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing Image Edit:', error);
+    throw error;
+  }
+};
+
 // Garment Classification APIを呼び出す
 export const classifyGarment = async (file: File, groupId?: string, userId?: string) => {
   try {
