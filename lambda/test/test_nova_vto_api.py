@@ -2585,6 +2585,546 @@ class NovaVTOAPITest(unittest.TestCase):
         logger.info(f"Enhanced: {enhanced}")
         logger.info("Prompt enhancement Japanese test passed")
 
+    def test_nova2_image_edit_workflow(self):
+        """Test Nova 2 image edit workflow with S3 presigned URLs"""
+        logger.info("Testing Nova 2 image edit workflow with S3 presigned URLs")
+
+        # Step 1: Generate object names for input image
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names for input image
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        input_image_object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/input_image.png"
+
+        logger.info(f"Generated input image object name: {input_image_object_name}")
+
+        # Step 2: Upload test image using presigned URL
+        logger.info("Step 2: Uploading test image using presigned URL")
+
+        if not os.path.exists(self.source_image_path):
+            logger.warning("Test image not found, skipping test")
+            self.skipTest("Test image not found")
+
+        # Upload input image
+        input_upload_success = self._upload_image_via_presigned_url(
+            self.source_image_path, input_image_object_name
+        )
+        self.assertTrue(input_upload_success, "Failed to upload input image")
+
+        # Step 3: Process image edit
+        logger.info("Step 3: Processing image edit")
+
+        # Generate object_names for output images
+        number_of_images = 1
+        output_object_names = []
+        for i in range(number_of_images):
+            object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_{i}.png"
+            output_object_names.append(object_name)
+
+        logger.info(f"Generated output object_names: {output_object_names}")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "Change the background to a beautiful beach with palm trees",
+            "input_image_object_name": input_image_object_name,
+            "model_id": "nova2",
+            "number_of_images": number_of_images,
+            "height": 512,
+            "width": 512,
+        }
+
+        logger.info(f"Image edit request body: {request_body}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(f"Image edit response status: {edit_response.status_code}")
+        logger.info(f"Image edit response body: {edit_response.text}")
+
+        # Check status code
+        self.assertEqual(edit_response.status_code, 200)
+
+        # Check response data
+        edit_data = edit_response.json()
+        self.assertIsInstance(edit_data, dict)
+
+        # Check required fields
+        required_fields = ["request_id", "status"]
+        for field in required_fields:
+            self.assertIn(field, edit_data)
+            self.assertIsInstance(edit_data[field], str)
+            self.assertGreater(len(edit_data[field]), 0)
+
+        # Check status is expected value
+        self.assertEqual(edit_data["status"], "accepted")
+
+        # Check object_names exists
+        self.assertIn("object_names", edit_data)
+        self.assertIsInstance(edit_data["object_names"], list)
+        self.assertGreater(len(edit_data["object_names"]), 0)
+
+        logger.info(
+            f"Image edit workflow completed successfully. Request ID: {edit_data['request_id']}"
+        )
+
+        # Step 4: Test downloading generated images (remote mode only)
+        if self.remote:
+            logger.info(
+                "Step 4: Testing download of generated image edit images using presigned URLs"
+            )
+
+            # Wait for image generation
+            logger.info("Waiting 45 seconds for image edit generation...")
+            time.sleep(45)
+
+            # Download generated images using presigned URLs
+            for object_name in edit_data["object_names"]:
+                with self.subTest(object_name=object_name):
+                    logger.info(f"Testing presigned URL download for: {object_name}")
+
+                    # Download using presigned URL
+                    download_success = self._download_image_via_presigned_url(
+                        object_name
+                    )
+                    self.assertTrue(
+                        download_success,
+                        f"Failed to download image edit image: {object_name}",
+                    )
+
+                    logger.info(
+                        f"Successfully downloaded image edit image: {object_name}"
+                    )
+
+            logger.info("Image edit image download via presigned URLs test passed")
+
+        logger.info("Nova 2 image edit workflow test passed")
+
+    def test_nova2_image_edit_japanese_prompt(self):
+        """Test Nova 2 image edit with Japanese prompt"""
+        logger.info("Testing Nova 2 image edit with Japanese prompt")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        input_image_object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/input_japanese.png"
+        output_object_names = [
+            f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_japanese_0.png"
+        ]
+
+        # Step 2: Upload test image
+        logger.info("Step 2: Uploading test image")
+
+        if not os.path.exists(self.source_image_path):
+            logger.warning("Test image not found, skipping test")
+            self.skipTest("Test image not found")
+
+        input_upload_success = self._upload_image_via_presigned_url(
+            self.source_image_path, input_image_object_name
+        )
+        self.assertTrue(input_upload_success, "Failed to upload input image")
+
+        # Step 3: Process image edit with Japanese prompt
+        logger.info("Step 3: Processing image edit with Japanese prompt")
+
+        japanese_prompt = "背景を美しいビーチとヤシの木に変更してください"
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": japanese_prompt,
+            "input_image_object_name": input_image_object_name,
+            "model_id": "nova2",
+            "number_of_images": 1,
+            "height": 512,
+            "width": 512,
+        }
+
+        logger.info(f"Image edit Japanese prompt request body: {request_body}")
+        logger.info(f"Japanese prompt: {japanese_prompt}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(
+            f"Image edit Japanese response status: {edit_response.status_code}"
+        )
+        logger.info(f"Image edit Japanese response body: {edit_response.text}")
+
+        # Check status code
+        self.assertEqual(edit_response.status_code, 200)
+
+        # Check response data
+        edit_data = edit_response.json()
+        self.assertIsInstance(edit_data, dict)
+        self.assertEqual(edit_data["status"], "accepted")
+
+        logger.info("Nova 2 image edit Japanese prompt test passed")
+
+    def test_nova2_image_edit_multiple_images(self):
+        """Test Nova 2 image edit with multiple images"""
+        logger.info("Testing Nova 2 image edit with multiple images")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        input_image_object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/input_multiple.png"
+
+        number_of_images = 3
+        output_object_names = []
+        for i in range(number_of_images):
+            object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_multiple_{i}.png"
+            output_object_names.append(object_name)
+
+        # Step 2: Upload test image
+        logger.info("Step 2: Uploading test image")
+
+        if not os.path.exists(self.source_image_path):
+            logger.warning("Test image not found, skipping test")
+            self.skipTest("Test image not found")
+
+        input_upload_success = self._upload_image_via_presigned_url(
+            self.source_image_path, input_image_object_name
+        )
+        self.assertTrue(input_upload_success, "Failed to upload input image")
+
+        # Step 3: Process image edit with multiple images
+        logger.info(f"Step 3: Processing image edit with {number_of_images} images")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "Add a rainbow in the sky",
+            "input_image_object_name": input_image_object_name,
+            "model_id": "nova2",
+            "number_of_images": number_of_images,
+            "height": 512,
+            "width": 512,
+        }
+
+        logger.info(f"Image edit multiple images request body: {request_body}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=60,
+        )
+
+        logger.info(
+            f"Image edit multiple images response status: {edit_response.status_code}"
+        )
+        logger.info(f"Image edit multiple images response body: {edit_response.text}")
+
+        # Check status code
+        self.assertEqual(edit_response.status_code, 200)
+
+        # Check response data
+        edit_data = edit_response.json()
+        self.assertIsInstance(edit_data, dict)
+        self.assertEqual(edit_data["status"], "accepted")
+
+        # Check that all object names are returned
+        self.assertIn("object_names", edit_data)
+        self.assertEqual(len(edit_data["object_names"]), number_of_images)
+
+        logger.info(
+            f"Image edit multiple images accepted for {number_of_images} images"
+        )
+
+        # Step 4: Test downloading generated images (remote mode only)
+        if self.remote:
+            logger.info(
+                f"Step 4: Testing download of {number_of_images} image edit images"
+            )
+
+            # Wait for image generation
+            logger.info("Waiting 60 seconds for multiple image edit generation...")
+            time.sleep(60)
+
+            # Download all generated images
+            for object_name in edit_data["object_names"]:
+                with self.subTest(object_name=object_name):
+                    logger.info(f"Testing presigned URL download for: {object_name}")
+
+                    download_success = self._download_image_via_presigned_url(
+                        object_name
+                    )
+                    self.assertTrue(
+                        download_success,
+                        f"Failed to download image edit image: {object_name}",
+                    )
+
+                    logger.info(
+                        f"Successfully downloaded image edit image: {object_name}"
+                    )
+
+            logger.info("Image edit multiple images download test passed")
+
+        logger.info("Nova 2 image edit multiple images test passed")
+
+    def test_nova2_image_edit_missing_prompt(self):
+        """Test Nova 2 image edit with missing prompt (should fail)"""
+        logger.info("Testing Nova 2 image edit with missing prompt")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        input_image_object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/input.png"
+        output_object_names = [
+            f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_0.png"
+        ]
+
+        # Step 2: Process image edit without prompt
+        logger.info("Step 2: Processing image edit without prompt")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            # "prompt": "",  # Missing prompt
+            "input_image_object_name": input_image_object_name,
+            "model_id": "nova2",
+            "number_of_images": 1,
+            "height": 512,
+            "width": 512,
+        }
+
+        logger.info(f"Image edit missing prompt request body: {request_body}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(
+            f"Image edit missing prompt response status: {edit_response.status_code}"
+        )
+        logger.info(f"Image edit missing prompt response body: {edit_response.text}")
+
+        # Check validation error occurs
+        self.assertEqual(edit_response.status_code, 422)
+
+        logger.info("Nova 2 image edit missing prompt test passed")
+
+    def test_nova2_image_edit_missing_input_image(self):
+        """Test Nova 2 image edit with missing input image (should fail)"""
+        logger.info("Testing Nova 2 image edit with missing input image")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        output_object_names = [
+            f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_0.png"
+        ]
+
+        # Step 2: Process image edit without input image
+        logger.info("Step 2: Processing image edit without input image")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "Change the background",
+            # "input_image_object_name": "",  # Missing input image
+            "model_id": "nova2",
+            "number_of_images": 1,
+            "height": 512,
+            "width": 512,
+        }
+
+        logger.info(f"Image edit missing input image request body: {request_body}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(
+            f"Image edit missing input image response status: {edit_response.status_code}"
+        )
+        logger.info(
+            f"Image edit missing input image response body: {edit_response.text}"
+        )
+
+        # Check validation error occurs
+        self.assertEqual(edit_response.status_code, 422)
+
+        logger.info("Nova 2 image edit missing input image test passed")
+
+    def test_nova2_image_edit_invalid_image_size(self):
+        """Test Nova 2 image edit with invalid image size (should fail)"""
+        logger.info("Testing Nova 2 image edit with invalid image size")
+
+        # Step 1: Generate object names
+        logger.info("Step 1: Generating object names")
+        params = {"group_id": self.group_id, "user_id": self.user_id}
+
+        objectname_response = requests.get(
+            f"{self.base_url}/utils/get/objectname",
+            params=params,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        self.assertEqual(objectname_response.status_code, 200)
+        objectname_data = objectname_response.json()
+
+        # Generate object names
+        date_folder = objectname_data["date_folder"]
+        timestamp = objectname_data["timestamp"]
+        uid = objectname_data["uid"]
+
+        input_image_object_name = f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/input.png"
+        output_object_names = [
+            f"{self.group_id}/{self.user_id}/image_edit/{date_folder}/{uid}/result_0.png"
+        ]
+
+        # Step 2: Process image edit with invalid image size
+        logger.info("Step 2: Processing image edit with invalid image size")
+
+        request_body = {
+            "group_id": self.group_id,
+            "user_id": self.user_id,
+            "date_folder": date_folder,
+            "timestamp": timestamp,
+            "uid": uid,
+            "object_names": output_object_names,
+            "prompt": "Change the background",
+            "input_image_object_name": input_image_object_name,
+            "model_id": "nova2",
+            "number_of_images": 1,
+            "height": 999,  # Invalid size
+            "width": 999,  # Invalid size
+        }
+
+        logger.info(f"Image edit invalid size request body: {request_body}")
+
+        edit_response = requests.post(
+            f"{self.base_url}/vto/nova/edit",
+            json=request_body,
+            headers=self.auth_headers,
+            timeout=30,
+        )
+
+        logger.info(
+            f"Image edit invalid size response status: {edit_response.status_code}"
+        )
+        logger.info(f"Image edit invalid size response body: {edit_response.text}")
+
+        # Check validation error occurs
+        self.assertEqual(edit_response.status_code, 422)
+
+        logger.info("Nova 2 image edit invalid image size test passed")
+
 
 def main():
     """Main function - Execute unittest"""
