@@ -41,6 +41,11 @@ export interface BackgroundReplacementParameters {
   width: number;
 }
 
+// Image Edit Parameters
+export interface ImageEditParameters {
+  prompt: string;
+}
+
 // Generated Image Type
 export interface GeneratedImage {
   base64?: string;
@@ -121,6 +126,20 @@ export interface BackgroundReplacementState {
   error: string | null;
 }
 
+// Image Edit State
+export interface ImageEditState {
+  sourceImageFile: File | null;
+  sourceImage: string | null;
+  generatedImages: GeneratedImage[];
+  selectedImageIndex: number;
+  parameters: ImageEditParameters;
+  isLoading: boolean;
+  uploadProgress: boolean;
+  processingProgress: boolean;
+  downloadProgress: boolean;
+  error: string | null;
+}
+
 // Language Settings
 export interface LanguageState {
   currentLanguage: 'en' | 'ja';
@@ -131,5 +150,6 @@ export interface AppState {
   vto: VTOState;
   modelGeneration: ModelGenerationState;
   backgroundReplacement: BackgroundReplacementState;
+  imageEdit: ImageEditState;
   language: LanguageState;
 }

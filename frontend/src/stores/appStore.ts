@@ -4,9 +4,11 @@ import type {
   VTOState,
   ModelGenerationState,
   BackgroundReplacementState,
+  ImageEditState,
   VTOParameters,
   ModelGenerationParameters,
   BackgroundReplacementParameters,
+  ImageEditParameters,
   GeneratedImage,
   LanguageState,
 } from '../types/store';
@@ -53,6 +55,11 @@ const defaultBackgroundReplacementParameters: BackgroundReplacementParameters = 
   numberOfImages: 1,
   height: 1024,
   width: 1024,
+};
+
+// Default Image Edit Parameters
+const defaultImageEditParameters: ImageEditParameters = {
+  prompt: '',
 };
 
 // Default VTO State
@@ -102,6 +109,20 @@ const defaultBackgroundReplacementState: BackgroundReplacementState = {
   generatedImages: [],
   selectedImageIndex: 0,
   parameters: defaultBackgroundReplacementParameters,
+  isLoading: false,
+  uploadProgress: false,
+  processingProgress: false,
+  downloadProgress: false,
+  error: null,
+};
+
+// Default Image Edit State
+const defaultImageEditState: ImageEditState = {
+  sourceImageFile: null,
+  sourceImage: null,
+  generatedImages: [],
+  selectedImageIndex: 0,
+  parameters: defaultImageEditParameters,
   isLoading: false,
   uploadProgress: false,
   processingProgress: false,
@@ -169,6 +190,20 @@ interface AppStore extends AppState {
   }) => void;
   resetBackgroundReplacement: () => void;
 
+  // Image Edit Actions
+  setImageEditSourceImage: (file: File | null, url: string | null) => void;
+  setImageEditGeneratedImages: (images: GeneratedImage[]) => void;
+  setImageEditSelectedImageIndex: (index: number) => void;
+  setImageEditParameters: (parameters: Partial<ImageEditParameters>) => void;
+  setImageEditLoadingState: (loading: {
+    isLoading?: boolean;
+    uploadProgress?: boolean;
+    processingProgress?: boolean;
+    downloadProgress?: boolean;
+    error?: string | null;
+  }) => void;
+  resetImageEdit: () => void;
+
   // Language Actions
   setLanguage: (language: 'en' | 'ja') => void;
 
@@ -181,6 +216,7 @@ export const useAppStore = create<AppStore>((set, _get) => ({
   vto: defaultVTOState,
   modelGeneration: defaultModelGenerationState,
   backgroundReplacement: defaultBackgroundReplacementState,
+  imageEdit: defaultImageEditState,
   language: defaultLanguageState,
 
   // VTO Actions
@@ -378,6 +414,56 @@ export const useAppStore = create<AppStore>((set, _get) => ({
       backgroundReplacement: defaultBackgroundReplacementState,
     })),
 
+  // Image Edit Actions
+  setImageEditSourceImage: (file, url) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        sourceImageFile: file,
+        sourceImage: url,
+      },
+    })),
+
+  setImageEditGeneratedImages: (images) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        generatedImages: images,
+      },
+    })),
+
+  setImageEditSelectedImageIndex: (index) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        selectedImageIndex: index,
+      },
+    })),
+
+  setImageEditParameters: (parameters) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        parameters: {
+          ...state.imageEdit.parameters,
+          ...parameters,
+        },
+      },
+    })),
+
+  setImageEditLoadingState: (loading) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        ...loading,
+      },
+    })),
+
+  resetImageEdit: () =>
+    set((_state) => ({
+      imageEdit: defaultImageEditState,
+    })),
+
   // Language Actions
   setLanguage: (language) =>
     set((state) => {
@@ -397,5 +483,6 @@ export const useAppStore = create<AppStore>((set, _get) => ({
       vto: defaultVTOState,
       modelGeneration: defaultModelGenerationState,
       backgroundReplacement: defaultBackgroundReplacementState,
+      imageEdit: defaultImageEditState,
     })),
 }));
