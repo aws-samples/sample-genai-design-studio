@@ -36,45 +36,86 @@ describe('ModelGeneration', () => {
     )
   }
 
-  it('renders the model selection UI', () => {
+  it('renders the model selection dropdown', () => {
     renderModelGeneration()
     
-    // Check for model selection heading
-    expect(screen.getByText('Model Selection')).toBeInTheDocument()
+    // Check for model selection label
+    expect(screen.getByLabelText('Model Selection')).toBeInTheDocument()
     
-    // Check for Nova Canvas option
-    expect(screen.getByText('Nova Canvas (Default)')).toBeInTheDocument()
-    expect(screen.getByText('Standard image generation model')).toBeInTheDocument()
-    
-    // Check for Nova 2 option
-    expect(screen.getByText('Nova 2')).toBeInTheDocument()
-    expect(screen.getByText('Advanced multimodal model')).toBeInTheDocument()
+    // The select should be a combobox role
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i })
+    expect(selectElement).toBeInTheDocument()
   })
 
-  it('has Nova Canvas selected by default', () => {
+  it('has Nova 2 selected by default', () => {
     renderModelGeneration()
     
-    // Find the radio buttons
-    const radioButtons = screen.getAllByRole('radio')
-    expect(radioButtons).toHaveLength(2)
+    // Get the select element
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i }) as HTMLSelectElement
     
-    // Nova Canvas should be checked by default
-    expect(radioButtons[0]).toBeChecked()
-    expect(radioButtons[1]).not.toBeChecked()
+    // Nova 2 should be selected by default
+    expect(selectElement.value).toBe('nova2')
   })
 
-  it('allows changing the model selection', () => {
+  it('allows changing the model selection', async () => {
     renderModelGeneration()
     
-    // Find the radio buttons
-    const radioButtons = screen.getAllByRole('radio')
+    // Get the select element
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i })
     
-    // Click on Nova 2
-    fireEvent.click(radioButtons[1])
+    // Change to Nova Canvas
+    fireEvent.mouseDown(selectElement)
     
-    // Nova 2 should now be checked
-    expect(radioButtons[0]).not.toBeChecked()
-    expect(radioButtons[1]).toBeChecked()
+    // Wait for the menu to appear and click on Nova Canvas option
+    await waitFor(() => {
+      const novaCanvasOption = screen.getByText('Nova Canvas')
+      fireEvent.click(novaCanvasOption)
+    })
+    
+    // Nova Canvas should now be selected
+    await waitFor(() => {
+      expect((selectElement as HTMLSelectElement).value).toBe('amazon.nova-canvas-v1:0')
+    })
+  })
+
+  it('sends model_id to API when generating with Nova 2 (default)', async () => {
+    const mockGenerateObjectNames = vi.mocked(api.generateObjectNames)
+    const mockProcessNovaModel = vi.mocked(api.processNovaModel)
+    
+    mockGenerateObjectNames.mockResolvedValue({
+      date_folder: '2025-01-15',
+      timestamp: '1234567890',
+      uid: 'test-uid',
+    })
+    
+    mockProcessNovaModel.mockResolvedValue({
+      status: 'accepted',
+      object_names: ['test/image.png'],
+    })
+    
+    renderModelGeneration()
+    
+    // Ensure Nova 2 is selected (it's the default)
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i }) as HTMLSelectElement
+    expect(selectElement.value).toBe('nova2')
+    
+    // Enter a prompt
+    const promptInput = screen.getByPlaceholderText(/e.g.,/)
+    fireEvent.change(promptInput, { target: { value: 'A beautiful landscape' } })
+    
+    // Click generate button
+    const generateButton = screen.getByRole('button', { name: /Generate/i })
+    fireEvent.click(generateButton)
+    
+    // Wait for API call
+    await waitFor(() => {
+      expect(mockProcessNovaModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          modelId: 'nova2',
+          prompt: 'A beautiful landscape',
+        })
+      )
+    })
   })
 
   it('sends model_id to API when generating with Nova Canvas', async () => {
@@ -94,9 +135,14 @@ describe('ModelGeneration', () => {
     
     renderModelGeneration()
     
-    // Ensure Nova Canvas is selected (it's the default)
-    const radioButtons = screen.getAllByRole('radio')
-    expect(radioButtons[0]).toBeChecked()
+    // Change to Nova Canvas
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i })
+    fireEvent.mouseDown(selectElement)
+    
+    await waitFor(() => {
+      const novaCanvasOption = screen.getByText('Nova Canvas')
+      fireEvent.click(novaCanvasOption)
+    })
     
     // Enter a prompt
     const promptInput = screen.getByPlaceholderText(/e.g.,/)
@@ -111,46 +157,6 @@ describe('ModelGeneration', () => {
       expect(mockProcessNovaModel).toHaveBeenCalledWith(
         expect.objectContaining({
           modelId: 'amazon.nova-canvas-v1:0',
-          prompt: 'A beautiful landscape',
-        })
-      )
-    })
-  })
-
-  it('sends model_id to API when generating with Nova 2', async () => {
-    const mockGenerateObjectNames = vi.mocked(api.generateObjectNames)
-    const mockProcessNovaModel = vi.mocked(api.processNovaModel)
-    
-    mockGenerateObjectNames.mockResolvedValue({
-      date_folder: '2025-01-15',
-      timestamp: '1234567890',
-      uid: 'test-uid',
-    })
-    
-    mockProcessNovaModel.mockResolvedValue({
-      status: 'accepted',
-      object_names: ['test/image.png'],
-    })
-    
-    renderModelGeneration()
-    
-    // Select Nova 2
-    const radioButtons = screen.getAllByRole('radio')
-    fireEvent.click(radioButtons[1])
-    
-    // Enter a prompt
-    const promptInput = screen.getByPlaceholderText(/e.g.,/)
-    fireEvent.change(promptInput, { target: { value: 'A beautiful landscape' } })
-    
-    // Click generate button
-    const generateButton = screen.getByRole('button', { name: /Generate/i })
-    fireEvent.click(generateButton)
-    
-    // Wait for API call
-    await waitFor(() => {
-      expect(mockProcessNovaModel).toHaveBeenCalledWith(
-        expect.objectContaining({
-          modelId: 'nova2',
           prompt: 'A beautiful landscape',
         })
       )

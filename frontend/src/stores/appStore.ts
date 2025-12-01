@@ -36,7 +36,7 @@ const defaultVTOParameters: VTOParameters = {
 // Default Model Generation Parameters
 const defaultModelGenerationParameters: ModelGenerationParameters = {
   prompt: '',
-  modelId: 'amazon.nova-canvas-v1:0',
+  modelId: 'nova2', // Changed default to Nova 2
   cfgScale: 6.5,
   height: 1024,
   width: 1024,
