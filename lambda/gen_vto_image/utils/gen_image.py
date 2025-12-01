@@ -189,17 +189,48 @@ def generate_text_to_image(
 
 # Nova 2 Omni specific functions
 
-def build_nova2_system_prompt(height: int, width: int) -> str:
+def retrieve_image_from_s3(bucket: str, object_name: str) -> Optional[bytes]:
+    """
+    Retrieve image from S3 bucket
+    
+    Args:
+        bucket: S3 bucket name
+        object_name: S3 object key
+        
+    Returns:
+        Image bytes, or None if retrieval fails
+    """
+    try:
+        from .core import S3_CLIENT
+        
+        logger.info(f"Retrieving image from S3: s3://{bucket}/{object_name}")
+        response = S3_CLIENT.get_object(Bucket=bucket, Key=object_name)
+        image_bytes = response['Body'].read()
+        logger.info(f"Retrieved image: {len(image_bytes)} bytes")
+        return image_bytes
+        
+    except ClientError as e:
+        logger.error(f"Failed to retrieve image from S3: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error retrieving image from S3: {str(e)}")
+        return None
+
+
+def build_nova2_system_prompt(height: int, width: int, is_edit: bool = False) -> str:
     """
     Build system prompt for Nova 2 Omni with image size specification
     
     Args:
         height: Image height in pixels
         width: Image width in pixels
+        is_edit: Whether this is an image edit task
         
     Returns:
         System prompt string
     """
+    if is_edit:
+        return f"Edit the provided image based on the user's instructions. Preserve the overall structure and composition while applying the requested modifications. Generate the edited image with dimensions {width}x{height} pixels."
     return f"Generate an image with dimensions {width}x{height} pixels based on the user's request."
 
 
@@ -207,7 +238,8 @@ def build_converse_request(
     prompt: str,
     height: int,
     width: int,
-    bedrock_model_id: str = "us.amazon.nova-2-omni-v1:0"
+    bedrock_model_id: str = "us.amazon.nova-2-omni-v1:0",
+    input_image: Optional[bytes] = None
 ) -> Dict[str, Any]:
     """
     Build Converse API request for Nova 2 Omni
@@ -217,11 +249,27 @@ def build_converse_request(
         height: Image height
         width: Image width
         bedrock_model_id: Bedrock model ID
+        input_image: Optional input image bytes for image editing
         
     Returns:
         Converse API request dictionary
     """
-    system_prompt = build_nova2_system_prompt(height, width)
+    is_edit = input_image is not None
+    system_prompt = build_nova2_system_prompt(height, width, is_edit)
+    
+    content = []
+    
+    if input_image:
+        content.append({
+            "image": {
+                "format": "png",
+                "source": {
+                    "bytes": input_image
+                }
+            }
+        })
+    
+    content.append({"text": prompt})
     
     request = {
         "modelId": bedrock_model_id,
@@ -231,15 +279,13 @@ def build_converse_request(
         "messages": [
             {
                 "role": "user",
-                "content": [
-                    {"text": prompt}
-                ]
+                "content": content
             }
         ],
         "inferenceConfig": NOVA2_DEFAULT_INFERENCE_CONFIG
     }
     
-    logger.debug(f"Built Converse API request: {json.dumps(request, indent=2)}")
+    logger.debug(f"Built Converse API request: {json.dumps(request, indent=2, default=str)}")
     logger.info(f"Using Nova 2 default inference config: {NOVA2_DEFAULT_INFERENCE_CONFIG}")
     
     return request
@@ -286,11 +332,11 @@ def generate_with_nova2(params: Dict[str, Any]) -> Dict[str, Any]:
         - This function is called from API Lambda parallel invocation
         - number_of_images should always be 1
         - cfg_scale and quality parameters are ignored (Nova 2 doesn't support them)
+        - Supports optional input_image_object_name for image editing
     """
     logger.info("Generating single image with Nova 2 Omni")
     
     try:
-        # Verify number_of_images is 1 (for parallel execution mode)
         number_of_images = params.get("number_of_images", 1)
         if number_of_images != 1:
             logger.warning(
@@ -301,10 +347,8 @@ def generate_with_nova2(params: Dict[str, Any]) -> Dict[str, Any]:
         image_index = params.get("image_index", 0)
         logger.info(f"Processing image index: {image_index}")
         
-        # Get Bedrock model ID
         bedrock_model_id = get_bedrock_model_id("nova2")
         
-        # Translate prompt
         original_prompt = params.get("prompt", "")
         if not original_prompt:
             return {
@@ -319,22 +363,39 @@ def generate_with_nova2(params: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Original prompt: {original_prompt}")
         logger.info(f"Translated prompt: {translated_prompt}")
         
-        # Get image dimensions
         height = params.get("height", 1024)
         width = params.get("width", 1024)
         
-        # Log ignored parameters
         if "cfg_scale" in params:
             logger.info(f"Ignoring cfg_scale parameter: {params['cfg_scale']} (not supported by Nova 2)")
         if "quality" in params:
             logger.info(f"Ignoring quality parameter: {params['quality']} (not supported by Nova 2)")
         
-        # Build Converse API request
+        input_image_bytes = None
+        input_image_object_name = params.get("input_image_object_name")
+        
+        if input_image_object_name:
+            logger.info(f"Retrieving input image: {input_image_object_name}")
+            input_image_bytes = retrieve_image_from_s3(VTO_BUCKET, input_image_object_name)
+            
+            if not input_image_bytes:
+                logger.error(f"Failed to retrieve input image from S3: {input_image_object_name}")
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps({
+                        "error": "Failed to retrieve input image from S3",
+                        "message": "Nova 2 image edit failed"
+                    })
+                }
+            
+            logger.info(f"Successfully retrieved input image: {len(input_image_bytes)} bytes")
+        
         request = build_converse_request(
             prompt=translated_prompt,
             height=height,
             width=width,
-            bedrock_model_id=bedrock_model_id
+            bedrock_model_id=bedrock_model_id,
+            input_image=input_image_bytes
         )
         
         # Call Converse API
