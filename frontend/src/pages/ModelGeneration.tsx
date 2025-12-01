@@ -15,8 +15,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  SelectChangeEvent,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ImageDisplay from '../components/ImageDisplay';
 import ImageSizeSelector from '../components/ImageSizeSelector';
