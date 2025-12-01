@@ -220,10 +220,27 @@ export const novaModelRequestSchema = z.object({
   number_of_images: z.number().int().min(1).max(5).default(1),
 });
 
+// Image Edit Request Schema
+export const imageEditRequestSchema = z.object({
+  group_id: groupIdSchema,
+  user_id: userIdSchema,
+  prompt: z.string().min(1, 'プロンプトは必須です').max(1024, 'プロンプトは1024文字以内で入力してください'),
+  input_image_object_name: nonEmptyString,
+  model_id: z.string().default('nova2'),
+  number_of_images: z.number().int().min(1).max(5).default(1),
+  height: z.number().refine((val) => VALID_DIMENSIONS.includes(val), {
+    message: `高さは ${VALID_DIMENSIONS.join(', ')} のいずれかである必要があります`,
+  }).default(512),
+  width: z.number().refine((val) => VALID_DIMENSIONS.includes(val), {
+    message: `幅は ${VALID_DIMENSIONS.join(', ')} のいずれかである必要があります`,
+  }).default(512),
+});
+
 // Type exports
 export type NovaVTORequest = z.infer<typeof novaVTORequestSchema>;
 export type BackgroundReplacementRequest = z.infer<typeof backgroundReplacementRequestSchema>;
 export type NovaModelRequest = z.infer<typeof novaModelRequestSchema>;
+export type ImageEditRequest = z.infer<typeof imageEditRequestSchema>;
 
 // Validation helper functions
 export const validateNovaVTORequest = (data: unknown): { success: boolean; data?: NovaVTORequest; error?: z.ZodError } => {
@@ -246,6 +263,15 @@ export const validateBackgroundReplacementRequest = (data: unknown): { success: 
 
 export const validateNovaModelRequest = (data: unknown): { success: boolean; data?: NovaModelRequest; error?: z.ZodError } => {
   const result = novaModelRequestSchema.safeParse(data);
+  return {
+    success: result.success,
+    data: result.success ? result.data : undefined,
+    error: result.success ? undefined : result.error,
+  };
+};
+
+export const validateImageEditRequest = (data: unknown): { success: boolean; data?: ImageEditRequest; error?: z.ZodError } => {
+  const result = imageEditRequestSchema.safeParse(data);
   return {
     success: result.success,
     data: result.success ? result.data : undefined,
