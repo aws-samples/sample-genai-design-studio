@@ -37,7 +37,7 @@
     "title": "モデル生成",
     "modelSelection": "モデル選択",
     "modelOptions": {
-      "novaCanvas": "Nova Canvas（デフォルト）",
+      "novaCanvas": "Nova Canvas",
       "novaCanvasDescription": "標準的な画像生成モデル",
       "nova2": "Nova 2",
       "nova2Description": "高度なマルチモーダルモデル"

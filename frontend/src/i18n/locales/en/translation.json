@@ -37,7 +37,7 @@
     "title": "Model Generation",
     "modelSelection": "Model Selection",
     "modelOptions": {
-      "novaCanvas": "Nova Canvas (Default)",
+      "novaCanvas": "Nova Canvas",
       "novaCanvasDescription": "Standard image generation model",
       "nova2": "Nova 2",
       "nova2Description": "Advanced multimodal model"
