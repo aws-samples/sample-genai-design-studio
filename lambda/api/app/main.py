@@ -10,6 +10,7 @@ from aws_lambda_powertools import Logger
 from app.routes.health import router as health_router
 from app.routes.nova_vto import router as nova_vto_router
 from app.routes.nova_model import router as nova_model_router
+from app.routes.nova_edit import router as nova_edit_router
 from app.routes.background_replacement import router as background_replacement_router
 from app.routes.garment_classification import router as garment_classification_router
 from app.routes.utils import router as utils_router
@@ -39,6 +40,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(nova_vto_router)
 app.include_router(nova_model_router)
+app.include_router(nova_edit_router)
 app.include_router(background_replacement_router)
 app.include_router(garment_classification_router)
 app.include_router(utils_router)
