@@ -50,11 +50,13 @@ describe('ModelGeneration', () => {
   it('has Nova 2 selected by default', () => {
     renderModelGeneration()
     
-    // Get the select element
-    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i }) as HTMLSelectElement
+    // Check the store state directly (MUI Select doesn't expose value in test environment)
+    const state = useAppStore.getState()
+    expect(state.modelGeneration.parameters.modelId).toBe('nova2')
     
-    // Nova 2 should be selected by default
-    expect(selectElement.value).toBe('nova2')
+    // Verify the select element exists
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i })
+    expect(selectElement).toBeInTheDocument()
   })
 
   it('allows changing the model selection', async () => {
@@ -72,9 +74,10 @@ describe('ModelGeneration', () => {
       fireEvent.click(novaCanvasOption)
     })
     
-    // Nova Canvas should now be selected
+    // Check the store state directly (MUI Select doesn't expose value in test environment)
     await waitFor(() => {
-      expect((selectElement as HTMLSelectElement).value).toBe('amazon.nova-canvas-v1:0')
+      const state = useAppStore.getState()
+      expect(state.modelGeneration.parameters.modelId).toBe('amazon.nova-canvas-v1:0')
     })
   })
 
@@ -95,9 +98,9 @@ describe('ModelGeneration', () => {
     
     renderModelGeneration()
     
-    // Ensure Nova 2 is selected (it's the default)
-    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i }) as HTMLSelectElement
-    expect(selectElement.value).toBe('nova2')
+    // Check the store state directly (MUI Select doesn't expose value in test environment)
+    const state = useAppStore.getState()
+    expect(state.modelGeneration.parameters.modelId).toBe('nova2')
     
     // Enter a prompt
     const promptInput = screen.getByPlaceholderText(/e.g.,/)
