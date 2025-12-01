@@ -57,14 +57,18 @@ def handler(event, context):
         elif "text_to_image_params" in event:
             return generate_text_to_image(event.get("text_to_image_params", {}))
 
+        # Check if this is an image edit request
+        elif "image_edit_params" in event:
+            from utils.gen_image import generate_with_nova2
+            return generate_with_nova2(event.get("image_edit_params", {}))
+
         else:
-            # If no recognized parameter type is found
             logger.error("No recognized parameter type found in event")
             return {
                 "statusCode": 400,
                 "body": json.dumps(
                     {
-                        "error": "No recognized parameter type (vto_params, replace_background_params, text_to_image_params, or health_check) found in event",
+                        "error": "No recognized parameter type (vto_params, replace_background_params, text_to_image_params, image_edit_params, or health_check) found in event",
                         "message": "Request processing failed",
                     }
                 ),
