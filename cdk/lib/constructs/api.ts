@@ -153,19 +153,14 @@ export class Api extends Construct {
     }));
 
     // Bedrock権限をVTO生成Lambda関数に付与
-    // 全てのBedrockモデルとInference Profilesをサポート
+    // 全てのリソースに対してBedrock Invokeを許可（制限なし）
     this.vtoGenImageFunction.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
         'bedrock:InvokeModel',
         'bedrock:InvokeModelWithResponseStream'
       ],
-      resources: [
-        // All foundation models in the region
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/*`,
-        // All inference profiles in the account
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:inference-profile/*`,
-      ],
+      resources: ['*'], // All resources - no restrictions
     }));
   }
 }
