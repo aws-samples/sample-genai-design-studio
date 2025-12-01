@@ -153,7 +153,7 @@ export class Api extends Construct {
     }));
 
     // Bedrock権限をVTO生成Lambda関数に付与
-    // Nova Canvas, Titan, Nova 2 Omni, Nova Lite, Nova Microをサポート
+    // 全てのBedrockモデルとInference Profilesをサポート
     this.vtoGenImageFunction.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
@@ -161,11 +161,10 @@ export class Api extends Construct {
         'bedrock:InvokeModelWithResponseStream'
       ],
       resources: [
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/amazon.nova-canvas-v1:0`,
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/amazon.titan-image-generator-v2:0`,
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/us.amazon.nova-2-omni-v1:0`,
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/us.amazon.nova-lite-v1:0`,
-        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/us.amazon.nova-micro-v1:0`,
+        // All foundation models in the region
+        `arn:aws:bedrock:${cdk.Stack.of(this).region}::foundation-model/*`,
+        // All inference profiles in the account
+        `arn:aws:bedrock:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:inference-profile/*`,
       ],
     }));
   }
