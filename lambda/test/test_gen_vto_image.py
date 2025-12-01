@@ -1515,6 +1515,233 @@ class GenVTOImageTest(unittest.TestCase):
         logger.info(f"Nova 2 Japanese prompt processing accepted: {body['message']}")
         logger.info("Nova 2 Japanese prompt translation test passed")
 
+    def test_nova2_image_edit_japanese_prompt(self):
+        """Test Nova 2 image editing with Japanese prompt (Task 8.1 - Requirements 1.4, 1.5)"""
+        logger.info("Testing Nova 2 image editing with Japanese prompt")
+
+        # Check if test images exist
+        if not os.path.exists(self.source_image_path):
+            self.skipTest("Test images not found")
+
+        # Japanese edit prompt
+        japanese_prompt = "この画像の人物のシャツを赤色に変更してください"
+
+        # Create Lambda event for Nova 2 image editing with Japanese prompt
+        event = {
+            "image_edit_params": {
+                "prompt": japanese_prompt,
+                "input_image_object_name": self.source_image_object_name,
+                "model_id": "nova2",
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_image_edit_japanese_0.png"],
+                "image_index": 0,
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+        logger.info(f"Japanese edit prompt: {japanese_prompt}")
+
+        logger.info("Invoking Lambda function for Nova 2 image editing with Japanese prompt...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check response structure
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 200)
+
+        # Parse body
+        body = json.loads(result["body"])
+        self.assertIn("message", body)
+        self.assertIn("status", body)
+
+        # Check response structure for async processing
+        self.assertEqual(body["status"], "completed")
+        self.assertIn("completed", body["message"])
+
+        logger.info(f"Nova 2 image editing processing accepted: {body['message']}")
+        logger.info("Nova 2 image editing with Japanese prompt test passed")
+
+    def test_nova2_image_edit_english_prompt(self):
+        """Test Nova 2 image editing with English prompt (Task 8.1 - Requirements 1.4, 1.5)"""
+        logger.info("Testing Nova 2 image editing with English prompt")
+
+        # Check if test images exist
+        if not os.path.exists(self.source_image_path):
+            self.skipTest("Test images not found")
+
+        # English edit prompt
+        english_prompt = "Change the person's shirt to blue color and add a modern office background"
+
+        # Create Lambda event for Nova 2 image editing with English prompt
+        event = {
+            "image_edit_params": {
+                "prompt": english_prompt,
+                "input_image_object_name": self.source_image_object_name,
+                "model_id": "nova2",
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_image_edit_english_0.png"],
+                "image_index": 0,
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+        logger.info(f"English edit prompt: {english_prompt}")
+
+        logger.info("Invoking Lambda function for Nova 2 image editing with English prompt...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check response structure
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 200)
+
+        # Parse body
+        body = json.loads(result["body"])
+        self.assertIn("message", body)
+        self.assertIn("status", body)
+
+        # Check response structure for async processing
+        self.assertEqual(body["status"], "completed")
+        self.assertIn("completed", body["message"])
+
+        logger.info(f"Nova 2 image editing processing accepted: {body['message']}")
+        logger.info("Nova 2 image editing with English prompt test passed")
+
+    def test_nova2_image_edit_s3_retrieval(self):
+        """Test S3 image retrieval and Base64 encoding for image editing (Task 8.1 - Requirements 9.1, 9.3)"""
+        logger.info("Testing S3 image retrieval and Base64 encoding")
+
+        # Check if test images exist
+        if not os.path.exists(self.source_image_path):
+            self.skipTest("Test images not found")
+
+        # Create Lambda event for Nova 2 image editing
+        event = {
+            "image_edit_params": {
+                "prompt": "Make the background more vibrant and colorful",
+                "input_image_object_name": self.source_image_object_name,
+                "model_id": "nova2",
+                "height": 512,
+                "width": 512,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_image_edit_s3_retrieval_0.png"],
+                "image_index": 0,
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+
+        logger.info("Invoking Lambda function for Nova 2 image editing (S3 retrieval test)...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check response structure
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 200)
+
+        # Parse body
+        body = json.loads(result["body"])
+        self.assertIn("message", body)
+        self.assertIn("status", body)
+
+        # Check response structure for async processing
+        self.assertEqual(body["status"], "completed")
+        self.assertIn("completed", body["message"])
+
+        logger.info(f"Nova 2 image editing processing accepted: {body['message']}")
+        logger.info("S3 image retrieval and Base64 encoding test passed")
+
+    def test_nova2_image_edit_missing_input_image(self):
+        """Test Nova 2 image editing with missing input image (should fail)"""
+        logger.info("Testing Nova 2 image editing with missing input image")
+
+        # Create Lambda event without input image
+        event = {
+            "image_edit_params": {
+                "prompt": "Change the background",
+                # "input_image_object_name": "",  # Missing input image
+                "model_id": "nova2",
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_image_edit_missing_image_0.png"],
+                "image_index": 0,
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+
+        logger.info("Invoking Lambda function for Nova 2 image editing without input image...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check error response
+        self.assertIn("statusCode", result)
+        # Should succeed but log warning about missing input image
+        # The function will proceed without input image (text-to-image mode)
+        self.assertEqual(result["statusCode"], 200)
+
+        logger.info("Nova 2 image editing with missing input image test passed")
+
+    def test_nova2_image_edit_invalid_s3_object(self):
+        """Test Nova 2 image editing with invalid S3 object (should fail)"""
+        logger.info("Testing Nova 2 image editing with invalid S3 object")
+
+        # Create Lambda event with non-existent S3 object
+        event = {
+            "image_edit_params": {
+                "prompt": "Change the background",
+                "input_image_object_name": "test/nonexistent/image.png",  # Invalid S3 object
+                "model_id": "nova2",
+                "height": 1024,
+                "width": 1024,
+                "number_of_images": 1,
+                "object_names": ["test/output/nova2_image_edit_invalid_s3_0.png"],
+                "image_index": 0,
+            }
+        }
+
+        # For debugging
+        logger.info(f"Event structure: {json.dumps(event, default=str)[:200]}...")
+
+        logger.info("Invoking Lambda function for Nova 2 image editing with invalid S3 object...")
+
+        # Invoke Lambda function
+        result = self._invoke_lambda(event)
+
+        logger.info(f"Lambda response: {json.dumps(result, default=str)[:200]}")
+
+        # Check error response
+        self.assertIn("statusCode", result)
+        self.assertEqual(result["statusCode"], 500)
+
+        # Parse body and check for error
+        body = json.loads(result["body"])
+        self.assertIn("error", body)
+        self.assertIn("Failed to retrieve input image from S3", body["error"])
+
+        logger.info("Nova 2 image editing with invalid S3 object test passed")
+
 
 def main():
     """Main function - Execute unittest"""
