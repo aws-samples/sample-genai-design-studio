@@ -315,8 +315,12 @@ const ImageEdit: React.FC = () => {
           </Button>
 
           {imageEdit.error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {imageEdit.error}
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setImageEditLoadingState({ error: null })}>
+              {imageEdit.error.split('\n').map((line, index) => (
+                <Typography key={index} variant="body2">
+                  {line}
+                </Typography>
+              ))}
             </Alert>
           )}
         </Box>
