@@ -28,6 +28,7 @@ import {
   LandscapeOutlined,
   LogoutOutlined,
   Language as LanguageIcon,
+  EditOutlined,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -65,6 +66,7 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
     { textKey: 'navigation.modelGeneration', icon: <Person2 />, path: '/model-generation' },
     { textKey: 'navigation.virtualTryOn', icon: <CheckroomOutlined />, path: '/virtual-try-on' },
     { textKey: 'navigation.backgroundReplacement', icon: <LandscapeOutlined />, path: '/background-replacement' },
+    { textKey: 'navigation.imageEdit', icon: <EditOutlined />, path: '/image-edit' },
   ];
 
   const handleNavigation = (path: string) => {
