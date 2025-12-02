@@ -98,7 +98,7 @@ const ImageEdit: React.FC = () => {
             }));
             
             setImageEditGeneratedImages(imageObjects);
-            setImageEditLoadingState({ isLoading: false });
+            setImageEditLoadingState({ isLoading: false, downloadProgress: false });
             return;
           } catch (downloadErr) {
             setTimeout(() => {
@@ -113,7 +113,8 @@ const ImageEdit: React.FC = () => {
         const errorMessage = err.response?.data?.error || err.message || t('imageEdit.pollingError');
         setImageEditLoadingState({ 
           error: `${t('imageEdit.error')}: ${errorMessage}`, 
-          isLoading: false 
+          isLoading: false,
+          downloadProgress: false
         });
       }
     },
@@ -166,6 +167,7 @@ const ImageEdit: React.FC = () => {
       setImageEditLoadingState({
         uploadProgress: false,
         processingProgress: true,
+        downloadProgress: false,
       });
 
       const numberOfImages = 1;
@@ -204,6 +206,10 @@ const ImageEdit: React.FC = () => {
 
       if (response.status === 'accepted') {
         console.log('✅ Request accepted. Starting polling for:', response.object_names);
+        setImageEditLoadingState({
+          processingProgress: false,
+          downloadProgress: true,
+        });
         pollForGeneratedImages(response.object_names);
       } else {
         console.error('❌ Request not accepted:', response);
@@ -217,6 +223,7 @@ const ImageEdit: React.FC = () => {
         isLoading: false,
         uploadProgress: false,
         processingProgress: false,
+        downloadProgress: false,
       });
     }
   }, [
@@ -321,6 +328,12 @@ const ImageEdit: React.FC = () => {
           loading={imageEdit.isLoading}
           title={t('imageEdit.generatedImages')}
           emptyMessage={t('imageEdit.noImagesGenerated')}
+          loadingMessage={
+            imageEdit.uploadProgress ? 'Uploading images...' : 
+            imageEdit.processingProgress ? 'Processing image edit...' : 
+            imageEdit.downloadProgress ? 'Retrieving generated images...' : 'Generating images...'
+          }
+          downloadFileName={`image-edit-${imageEdit.selectedImageIndex + 1}.png`}
         />
       </Stack>
     </Container>
