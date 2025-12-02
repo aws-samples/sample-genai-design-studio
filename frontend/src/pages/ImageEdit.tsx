@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   Container,
@@ -35,14 +35,7 @@ const ImageEdit: React.FC = () => {
     resetImageEdit,
   } = useAppStore();
 
-  const [pollingIntervals, setPollingIntervals] = useState<ReturnType<typeof setInterval>[]>([]);
 
-  // Cleanup intervals on unmount
-  React.useEffect(() => {
-    return () => {
-      pollingIntervals.forEach(interval => clearInterval(interval));
-    };
-  }, [pollingIntervals]);
 
   const handleSourceImageUpload = useCallback(
     (file: File | null) => {
@@ -232,10 +225,8 @@ const ImageEdit: React.FC = () => {
   ]);
 
   const handleReset = useCallback(() => {
-    pollingIntervals.forEach(clearInterval);
-    setPollingIntervals([]);
     resetImageEdit();
-  }, [pollingIntervals, resetImageEdit]);
+  }, [resetImageEdit]);
 
   const handleImageSelect = useCallback(
     (index: number) => {
