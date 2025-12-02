@@ -70,11 +70,15 @@ const ImageEdit: React.FC = () => {
       const completedImages = new Set<number>();
       const fetchedImages: Array<{base64: string; error: boolean}> = [];
 
+      console.log(`🔄 Starting polling for ${objectNames.length} images:`, objectNames);
+
       const intervals = objectNames.map((objectName, index) => {
         return setInterval(async () => {
           attemptCounts[index]++;
+          console.log(`📡 Polling attempt ${attemptCounts[index]}/${maxAttempts} for image ${index}: ${objectName}`);
 
           if (attemptCounts[index] >= maxAttempts) {
+            console.error(`⏱️ Timeout reached for image ${index} after ${maxAttempts} attempts`);
             setImageEditLoadingState({
               error: t('imageEdit.timeoutError'),
               isLoading: false,
@@ -87,10 +91,17 @@ const ImageEdit: React.FC = () => {
 
           try {
             const downloadUrlResponse = await getPresignedDownloadUrl(objectName);
+            console.log(`🔗 Presigned URL response for image ${index}:`, downloadUrlResponse);
+            
             if (downloadUrlResponse.url) {
+              console.log(`⬇️ Fetching image ${index} from S3...`);
               const response = await fetch(downloadUrlResponse.url);
+              console.log(`📥 Fetch response for image ${index}: status=${response.status}, ok=${response.ok}`);
+              
               if (response.ok) {
                 const blob = await response.blob();
+                console.log(`✅ Successfully fetched image ${index}: ${blob.size} bytes`);
+                
                 const base64 = await new Promise<string>((resolve) => {
                   const reader = new FileReader();
                   reader.onloadend = () => resolve(reader.result as string);
@@ -100,12 +111,14 @@ const ImageEdit: React.FC = () => {
                 // Add to fetched images array
                 fetchedImages.push({ base64, error: false });
                 completedImages.add(index);
+                console.log(`✨ Image ${index} added to state. Total fetched: ${fetchedImages.length}/${objectNames.length}`);
 
                 // Update state with all fetched images
                 setImageEditGeneratedImages([...fetchedImages]);
 
                 // Check if all images are completed
                 if (completedImages.size === objectNames.length) {
+                  console.log(`🎉 All ${objectNames.length} images completed!`);
                   setImageEditLoadingState({
                     isLoading: false,
                     processingProgress: false,
@@ -114,13 +127,18 @@ const ImageEdit: React.FC = () => {
                   // Clear all intervals when all images are done
                   intervals.forEach(interval => clearInterval(interval));
                 } else {
+                  console.log(`⏭️ Clearing interval for image ${index}. Remaining: ${objectNames.length - completedImages.size}`);
                   // Clear only this interval
                   clearInterval(intervals[index]);
                 }
+              } else {
+                console.log(`⏳ Image ${index} not ready yet (status: ${response.status})`);
               }
+            } else {
+              console.log(`❌ No presigned URL returned for image ${index}`);
             }
           } catch (error) {
-            console.error('Error polling for image:', error);
+            console.error(`❌ Error polling for image ${index}:`, error);
           }
         }, intervalMs);
       });
@@ -190,6 +208,18 @@ const ImageEdit: React.FC = () => {
         );
       }
 
+      console.log('📤 Sending image edit request:', {
+        groupId,
+        userId,
+        dateFolder: date_folder,
+        timestamp,
+        uid,
+        objectNames: outputObjectNames,
+        prompt: imageEdit.parameters.prompt,
+        inputImageObjectName,
+        numberOfImages,
+      });
+
       const response = await processImageEdit({
         groupId,
         userId,
@@ -202,9 +232,13 @@ const ImageEdit: React.FC = () => {
         numberOfImages,
       });
 
+      console.log('📨 Image edit API response:', response);
+
       if (response.status === 'accepted') {
+        console.log('✅ Request accepted. Starting polling for:', response.object_names);
         pollForGeneratedImages(response.object_names);
       } else {
+        console.error('❌ Request not accepted:', response);
         throw new Error(response.error || t('imageEdit.generationError'));
       }
     } catch (err: any) {
