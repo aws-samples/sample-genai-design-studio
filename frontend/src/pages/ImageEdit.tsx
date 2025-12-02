@@ -20,6 +20,7 @@ import {
   uploadFileToS3,
   processImageEdit,
   getPresignedDownloadUrl,
+  downloadImageFromS3,
 } from '../hooks/api';
 
 const ImageEdit: React.FC = () => {
@@ -63,93 +64,63 @@ const ImageEdit: React.FC = () => {
   );
 
   const pollForGeneratedImages = useCallback(
-    async (objectNames: string[]) => {
-      const maxAttempts = 100;
-      const intervalMs = 3000;
-      const attemptCounts = new Array(objectNames.length).fill(0);
-      const completedImages = new Set<number>();
-      const fetchedImages: Array<{base64: string; error: boolean}> = [];
+    async (objectNames: string[], maxAttempts = 100) => {
+      try {
+        const presignedUrlPromises = objectNames.map(objName => 
+          getPresignedDownloadUrl(objName, 1800)
+        );
+        
+        const presignedUrlResponses = await Promise.all(presignedUrlPromises);
+        const presignedUrls = presignedUrlResponses.map(res => res.url).filter(Boolean);
+        
+        if (presignedUrls.length === 0) {
+          setImageEditLoadingState({ 
+            error: t('imageEdit.presignedUrlError'), 
+            isLoading: false 
+          });
+          return;
+        }
 
-      console.log(`🔄 Starting polling for ${objectNames.length} images:`, objectNames);
-
-      const intervals = objectNames.map((objectName, index) => {
-        return setInterval(async () => {
-          attemptCounts[index]++;
-          console.log(`📡 Polling attempt ${attemptCounts[index]}/${maxAttempts} for image ${index}: ${objectName}`);
-
-          if (attemptCounts[index] >= maxAttempts) {
-            console.error(`⏱️ Timeout reached for image ${index} after ${maxAttempts} attempts`);
-            setImageEditLoadingState({
-              error: t('imageEdit.timeoutError'),
-              isLoading: false,
-              processingProgress: false,
+        const pollWithUrls = async (attemptCount: number) => {
+          if (attemptCount >= maxAttempts) {
+            setImageEditLoadingState({ 
+              error: t('imageEdit.timeoutError'), 
+              isLoading: false 
             });
-            // Clear all intervals on timeout
-            intervals.forEach(interval => clearInterval(interval));
             return;
           }
 
           try {
-            const downloadUrlResponse = await getPresignedDownloadUrl(objectName);
-            console.log(`🔗 Presigned URL response for image ${index}:`, downloadUrlResponse);
+            const imageDataUrlPromises = presignedUrls.map(url => downloadImageFromS3(url));
+            const imageDataUrls = await Promise.all(imageDataUrlPromises);
             
-            if (downloadUrlResponse.url) {
-              console.log(`⬇️ Fetching image ${index} from S3...`);
-              const response = await fetch(downloadUrlResponse.url);
-              console.log(`📥 Fetch response for image ${index}: status=${response.status}, ok=${response.ok}`);
-              
-              if (response.ok) {
-                const blob = await response.blob();
-                console.log(`✅ Successfully fetched image ${index}: ${blob.size} bytes`);
-                
-                const base64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(blob);
-                });
-
-                // Add to fetched images array
-                fetchedImages.push({ base64, error: false });
-                completedImages.add(index);
-                console.log(`✨ Image ${index} added to state. Total fetched: ${fetchedImages.length}/${objectNames.length}`);
-
-                // Update state with all fetched images
-                setImageEditGeneratedImages([...fetchedImages]);
-
-                // Check if all images are completed
-                if (completedImages.size === objectNames.length) {
-                  console.log(`🎉 All ${objectNames.length} images completed!`);
-                  setImageEditLoadingState({
-                    isLoading: false,
-                    processingProgress: false,
-                    downloadProgress: false,
-                  });
-                  // Clear all intervals when all images are done
-                  intervals.forEach(interval => clearInterval(interval));
-                } else {
-                  console.log(`⏭️ Clearing interval for image ${index}. Remaining: ${objectNames.length - completedImages.size}`);
-                  // Clear only this interval
-                  clearInterval(intervals[index]);
-                }
-              } else {
-                console.log(`⏳ Image ${index} not ready yet (status: ${response.status})`);
-              }
-            } else {
-              console.log(`❌ No presigned URL returned for image ${index}`);
-            }
-          } catch (error) {
-            console.error(`❌ Error polling for image ${index}:`, error);
+            const imageObjects = imageDataUrls.map(url => ({
+              base64: url.split(',')[1],
+              error: false,
+              errorMessage: undefined
+            }));
+            
+            setImageEditGeneratedImages(imageObjects);
+            setImageEditLoadingState({ isLoading: false });
+            return;
+          } catch (downloadErr) {
+            setTimeout(() => {
+              pollWithUrls(attemptCount + 1);
+            }, 3000); 
           }
-        }, intervalMs);
-      });
+        };
 
-      setPollingIntervals(intervals);
+        pollWithUrls(0);
+
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || err.message || t('imageEdit.pollingError');
+        setImageEditLoadingState({ 
+          error: `${t('imageEdit.error')}: ${errorMessage}`, 
+          isLoading: false 
+        });
+      }
     },
-    [
-      setImageEditGeneratedImages,
-      setImageEditLoadingState,
-      t,
-    ]
+    [setImageEditGeneratedImages, setImageEditLoadingState, t]
   );
 
   const handleGenerate = useCallback(async () => {
