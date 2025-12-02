@@ -4,7 +4,6 @@ import {
   Container,
   Typography,
   Stack,
-  Paper,
   TextField,
   Button,
   Alert,
@@ -36,7 +35,6 @@ const ImageEdit: React.FC = () => {
     setImageEditSelectedImageIndex,
     setImageEditParameters,
     setImageEditLoadingState,
-    resetImageEdit,
   } = useAppStore();
 
 
@@ -234,10 +232,6 @@ const ImageEdit: React.FC = () => {
     pollForGeneratedImages,
     t,
   ]);
-
-  const handleReset = useCallback(() => {
-    resetImageEdit();
-  }, [resetImageEdit]);
 
   const handleImageSelect = useCallback(
     (index: number) => {
