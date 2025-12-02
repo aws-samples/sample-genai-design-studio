@@ -241,8 +241,8 @@ const ImageEdit: React.FC = () => {
         {t('imageEdit.title')}
       </Typography>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={4}>
-        <Box sx={{ flex: 1 }}>
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
+        <Box sx={{ flex: { xs: 1, lg: 1 }, maxWidth: { lg: '33%' } }}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               {t('imageEdit.sourceImage')}
@@ -302,36 +302,14 @@ const ImageEdit: React.FC = () => {
           )}
         </Box>
 
-        <Box sx={{ flex: 1 }}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              {t('imageEdit.generatedImages')}
-            </Typography>
-            {imageEdit.generatedImages.length > 0 ? (
-              <ImageDisplay
-                images={imageEdit.generatedImages}
-                selectedImageIndex={imageEdit.selectedImageIndex}
-                onSelectImage={handleImageSelect}
-                loading={imageEdit.isLoading}
-              />
-            ) : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: 200,
-                  bgcolor: 'grey.100',
-                  borderRadius: 1,
-                }}
-              >
-                <Typography color="text.secondary">
-                  {t('imageEdit.noImagesGenerated')}
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        </Box>
+        <ImageDisplay
+          images={imageEdit.generatedImages}
+          selectedImageIndex={imageEdit.selectedImageIndex}
+          onSelectImage={handleImageSelect}
+          loading={imageEdit.isLoading}
+          title={t('imageEdit.generatedImages')}
+          emptyMessage={t('imageEdit.noImagesGenerated')}
+        />
       </Stack>
     </Container>
   );
