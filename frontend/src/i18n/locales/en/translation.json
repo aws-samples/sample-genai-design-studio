@@ -171,6 +171,28 @@
     "generateBackground": "Generate Background",
     "generating": "Generating...",
     "generatedImages": "Generated Images",
-    "emptyMessage": "Background replacement result will appear here"
+    "emptyMessage": "Background replacement result will appear here",
+    "resetButton": "Reset"
+  },
+  "imageEdit": {
+    "title": "Image Edit",
+    "sourceImage": "Source Image",
+    "uploadSourceImage": "Upload Source Image",
+    "editPrompt": "Edit Prompt",
+    "promptPlaceholder": "e.g., Change the shirt color to blue, Add sunglasses, Make it sunset lighting",
+    "generate": "Generate",
+    "uploading": "Uploading...",
+    "processing": "Processing...",
+    "downloading": "Downloading...",
+    "generatedImages": "Generated Images",
+    "noImagesGenerated": "Edited images will appear here",
+    "sourceImageRequired": "Please upload a source image",
+    "promptRequired": "Please enter an edit prompt",
+    "promptTooLong": "Prompt must be 1024 characters or less",
+    "uploadError": "Failed to upload image",
+    "generationError": "Failed to generate image",
+    "unexpectedError": "An unexpected error occurred",
+    "error": "Error",
+    "timeoutError": "Image generation timed out. Please try again."
   }
 }

@@ -171,7 +171,29 @@
     "generateBackground": "生成",
     "generating": "生成中...",
     "generatedImages": "生成画像",
-    "emptyMessage": "背景変更の結果がここに表示されます"
+    "emptyMessage": "背景変更の結果がここに表示されます",
+    "resetButton": "リセット"
+  },
+  "imageEdit": {
+    "title": "画像編集",
+    "sourceImage": "ソース画像",
+    "uploadSourceImage": "ソース画像をアップロード",
+    "editPrompt": "編集プロンプト",
+    "promptPlaceholder": "例：シャツの色を青に変更、サングラスを追加、夕日の照明にする",
+    "generate": "生成",
+    "uploading": "アップロード中...",
+    "processing": "処理中...",
+    "downloading": "ダウンロード中...",
+    "generatedImages": "生成画像",
+    "noImagesGenerated": "編集された画像がここに表示されます",
+    "sourceImageRequired": "ソース画像をアップロードしてください",
+    "promptRequired": "編集プロンプトを入力してください",
+    "promptTooLong": "プロンプトは1024文字以内にしてください",
+    "uploadError": "画像のアップロードに失敗しました",
+    "generationError": "画像の生成に失敗しました",
+    "unexpectedError": "予期しないエラーが発生しました",
+    "error": "エラー",
+    "timeoutError": "画像生成がタイムアウトしました。もう一度お試しください。"
   },
   "images": {
     "frontImage": "フロント画像",
