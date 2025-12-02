@@ -9,7 +9,11 @@ import {
   Button,
   Alert,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../stores/appStore';
 import ImageUpload from '../components/ImageUpload';
@@ -243,60 +247,68 @@ const ImageEdit: React.FC = () => {
 
       <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4, mt: 3 }}>
         <Box sx={{ flex: { xs: 1, lg: 1 }, maxWidth: { lg: '33%' } }}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              {t('imageEdit.sourceImage')}
-            </Typography>
-            <ImageUpload
-              onImageUpload={handleSourceImageUpload}
-              uploadedImage={imageEdit.sourceImage}
-              label={t('imageEdit.uploadSourceImage')}
-            />
-          </Paper>
-
-          <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              {t('imageEdit.editPrompt')}
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              value={imageEdit.parameters.prompt}
-              onChange={handlePromptChange}
-              placeholder={t('imageEdit.promptPlaceholder')}
-              disabled={imageEdit.isLoading}
-              inputProps={{ maxLength: 1024 }}
-              helperText={`${imageEdit.parameters.prompt.length}/1024`}
-            />
-          </Paper>
-
-          <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleGenerate}
-              disabled={imageEdit.isLoading}
-              startIcon={
-                imageEdit.isLoading ? <CircularProgress size={20} /> : null
-              }
-              sx={{ flex: 1 }}
+          <Accordion defaultExpanded sx={{ mb: 2 }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="source-image-content"
+              id="source-image-header"
             >
-              {imageEdit.isLoading
-                ? imageEdit.uploadProgress
-                  ? t('imageEdit.uploading')
-                  : imageEdit.processingProgress
-                  ? t('imageEdit.processing')
-                  : t('imageEdit.downloading')
-                : t('imageEdit.generate')}
-            </Button>
-            <Button variant="outlined" onClick={handleReset} sx={{ flex: 1 }}>
-              {t('backgroundReplacement.resetButton')}
-            </Button>
-          </Box>
+              <Typography variant="h6">{t('imageEdit.sourceImage')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <ImageUpload
+                onImageUpload={handleSourceImageUpload}
+                uploadedImage={imageEdit.sourceImage}
+                label={t('imageEdit.uploadSourceImage')}
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded sx={{ mb: 2 }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="edit-parameters-content"
+              id="edit-parameters-header"
+            >
+              <Typography variant="h6">{t('imageEdit.editPrompt')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                value={imageEdit.parameters.prompt}
+                onChange={handlePromptChange}
+                placeholder={t('imageEdit.promptPlaceholder')}
+                disabled={imageEdit.isLoading}
+                inputProps={{ maxLength: 1024 }}
+                helperText={`${imageEdit.parameters.prompt.length}/1024`}
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mb: 2 }}
+            onClick={handleGenerate}
+            disabled={imageEdit.isLoading}
+            startIcon={
+              imageEdit.isLoading ? <CircularProgress size={20} /> : null
+            }
+          >
+            {imageEdit.isLoading
+              ? imageEdit.uploadProgress
+                ? t('imageEdit.uploading')
+                : imageEdit.processingProgress
+                ? t('imageEdit.processing')
+                : t('imageEdit.downloading')
+              : t('imageEdit.generate')}
+          </Button>
 
           {imageEdit.error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {imageEdit.error}
             </Alert>
           )}
