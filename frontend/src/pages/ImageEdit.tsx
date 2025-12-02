@@ -36,6 +36,13 @@ const ImageEdit: React.FC = () => {
 
   const [pollingIntervals, setPollingIntervals] = useState<ReturnType<typeof setInterval>[]>([]);
 
+  // Cleanup intervals on unmount
+  React.useEffect(() => {
+    return () => {
+      pollingIntervals.forEach(interval => clearInterval(interval));
+    };
+  }, [pollingIntervals]);
+
   const handleSourceImageUpload = useCallback(
     (file: File | null) => {
       if (file) {
@@ -59,19 +66,22 @@ const ImageEdit: React.FC = () => {
     async (objectNames: string[]) => {
       const maxAttempts = 100;
       const intervalMs = 3000;
-      let attemptCount = 0;
+      const attemptCounts = new Array(objectNames.length).fill(0);
+      const completedImages = new Set<number>();
+      const fetchedImages: Array<{base64: string; error: boolean}> = [];
 
       const intervals = objectNames.map((objectName, index) => {
         return setInterval(async () => {
-          attemptCount++;
+          attemptCounts[index]++;
 
-          if (attemptCount >= maxAttempts) {
+          if (attemptCounts[index] >= maxAttempts) {
             setImageEditLoadingState({
               error: t('imageEdit.timeoutError'),
               isLoading: false,
               processingProgress: false,
             });
-            clearInterval(intervals[index]);
+            // Clear all intervals on timeout
+            intervals.forEach(interval => clearInterval(interval));
             return;
           }
 
@@ -87,20 +97,26 @@ const ImageEdit: React.FC = () => {
                   reader.readAsDataURL(blob);
                 });
 
-                setImageEditGeneratedImages([
-                  ...imageEdit.generatedImages,
-                  { base64, error: false },
-                ]);
+                // Add to fetched images array
+                fetchedImages.push({ base64, error: false });
+                completedImages.add(index);
 
-                if (imageEdit.generatedImages.length === 0) {
+                // Update state with all fetched images
+                setImageEditGeneratedImages([...fetchedImages]);
+
+                // Check if all images are completed
+                if (completedImages.size === objectNames.length) {
                   setImageEditLoadingState({
                     isLoading: false,
                     processingProgress: false,
                     downloadProgress: false,
                   });
+                  // Clear all intervals when all images are done
+                  intervals.forEach(interval => clearInterval(interval));
+                } else {
+                  // Clear only this interval
+                  clearInterval(intervals[index]);
                 }
-
-                clearInterval(intervals[index]);
               }
             }
           } catch (error) {
@@ -112,7 +128,6 @@ const ImageEdit: React.FC = () => {
       setPollingIntervals(intervals);
     },
     [
-      imageEdit.generatedImages,
       setImageEditGeneratedImages,
       setImageEditLoadingState,
       t,
