@@ -302,7 +302,6 @@ export const getValidationErrors = (error: z.ZodError): Record<string, string> =
   return errors;
 };
 
-// Validate Nova 2 image size
 export const validateNova2ImageSize = (width: number, height: number): string | null => {
   const isValidSize = VALID_NOVA2_SIZES.some(
     size => size.width === width && size.height === height

@@ -1,8 +1,6 @@
 from pydantic import BaseModel, field_validator, Field
 from typing import Optional, List
 
-VALID_DIMENSIONS = [256, 512, 768, 1024, 1280, 1536, 1792, 2048]
-
 
 class NovaEditRequest(BaseModel):
     group_id: str = Field(
@@ -28,21 +26,14 @@ class NovaEditRequest(BaseModel):
     number_of_images: int = Field(
         1, ge=1, le=5, description="Number of images to generate"
     )
-    height: int = Field(512, description="Image height")
-    width: int = Field(512, description="Image width")
+    height: int = Field(512, gt=0, description="Image height")
+    width: int = Field(512, gt=0, description="Image width")
 
     @field_validator("group_id", "user_id", "prompt", "input_image_object_name")
     @classmethod
     def validate_non_empty_string(cls, v: str) -> str:
         if not v or not v.strip():
             raise ValueError("must be non-empty string")
-        return v
-
-    @field_validator("height", "width")
-    @classmethod
-    def validate_dimensions(cls, v: int) -> int:
-        if v not in VALID_DIMENSIONS:
-            raise ValueError(f"must be one of {VALID_DIMENSIONS}")
         return v
 
 
