@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CheckroomOutlinedIcon from '@mui/icons-material/CheckroomOutlined';
 import Person2Icon from '@mui/icons-material/Person2';
-import PhotoSizeSelectActualOutlinedIcon from '@mui/icons-material/PhotoSizeSelectActualOutlined';
+import EditOutlined from '@mui/icons-material/EditOutlined';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -33,10 +33,10 @@ const Home: React.FC = () => {
       color: '#252F3D',
     },
     {
-      titleKey: 'home.backgroundReplacement.title',
-      descriptionKey: 'home.backgroundReplacement.description',
-      icon: <PhotoSizeSelectActualOutlinedIcon sx={{ fontSize: 60 }} />,
-      path: '/background-replacement',
+      titleKey: 'home.imageEdit.title',
+      descriptionKey: 'home.imageEdit.description',
+      icon: <EditOutlined sx={{ fontSize: 60 }} />,
+      path: '/image-edit',
       color: '#252F3D',
     },
   ];

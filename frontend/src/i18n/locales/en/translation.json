@@ -4,7 +4,6 @@
     "home": "Home",
     "modelGeneration": "Model Generation",
     "virtualTryOn": "Virtual Try-On",
-    "backgroundReplacement": "Background Replacement",
     "imageEdit": "Image Edit",
     "signOut": "Sign Out",
     "language": "Language"
@@ -19,9 +18,9 @@
       "title": "Virtual Try-On",
       "description": "Create realistic virtual try-on images by combining garment images with model images"
     },
-    "backgroundReplacement": {
-      "title": "Background Replacement",
-      "description": "Replace backgrounds in model images with text prompts"
+    "imageEdit": {
+      "title": "Image Edit",
+      "description": "Edit images using Amazon Nova 2 Omni's advanced AI capabilities"
     }
   },
   "common": {
@@ -152,29 +151,7 @@
     "processingVTO": "Processing VTO request...",
     "retrievingImages": "Retrieving generated images..."
   },
-  "backgroundReplacement": {
-    "title": "Background Replacement",
-    "sourceImage": "Source Image",
-    "backgroundParameters": "Background Parameters",
-    "backgroundPrompt": "Background Description Prompt",
-    "backgroundPromptPlaceholder": "e.g., beautiful sunset over mountains, modern office interior, tropical beach scene",
-    "backgroundPromptHelp": "Enter detailed description of the new background in English (max 1024 characters)",
-    "maskPrompt": "Mask Image for Areas to Preserve",
-    "maskPromptPlaceholder": "e.g., people, person, face",
-    "maskPromptHelp": "Specify areas to preserve from background change in English (default: people)",
-    "customMaskImage": "Custom Mask Image (Optional)",
-    "customMaskHelp": "Upload a custom mask image to precisely specify areas to protect",
-    "createMaskImage": "Create Mask Image",
-    "advancedParameters": "Advanced Parameters",
-    "modelId": "Model ID",
-    "outPaintingMode": "OutPainting Mode",
-    "cfgScale": "CFG Scale",
-    "generateBackground": "Generate Background",
-    "generating": "Generating...",
-    "generatedImages": "Generated Images",
-    "emptyMessage": "Background replacement result will appear here",
-    "resetButton": "Reset"
-  },
+
   "imageEdit": {
     "title": "Image Edit",
     "sourceImage": "Source Image",

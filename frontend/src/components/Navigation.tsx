@@ -25,7 +25,6 @@ import {
   CheckroomOutlined,
   Person2,
   HomeOutlined,
-  LandscapeOutlined,
   LogoutOutlined,
   Language as LanguageIcon,
   EditOutlined,
@@ -65,7 +64,6 @@ const Navigation: React.FC<NavigationProps> = ({ children }) => {
     { textKey: 'navigation.home', icon: <HomeOutlined />, path: '/home' },
     { textKey: 'navigation.modelGeneration', icon: <Person2 />, path: '/model-generation' },
     { textKey: 'navigation.virtualTryOn', icon: <CheckroomOutlined />, path: '/virtual-try-on' },
-    { textKey: 'navigation.backgroundReplacement', icon: <LandscapeOutlined />, path: '/background-replacement' },
     { textKey: 'navigation.imageEdit', icon: <EditOutlined />, path: '/image-edit' },
   ];
 

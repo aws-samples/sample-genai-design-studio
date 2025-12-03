@@ -4,7 +4,6 @@
     "home": "ホーム",
     "modelGeneration": "モデル生成",
     "virtualTryOn": "バーチャル試着",
-    "backgroundReplacement": "背景変更",
     "imageEdit": "画像編集",
     "signOut": "サインアウト",
     "language": "言語設定"
@@ -19,9 +18,9 @@
       "title": "バーチャル試着",
       "description": "服装画像とモデル画像を組み合わせて、リアルなバーチャル試着画像を作成します"
     },
-    "backgroundReplacement": {
-      "title": "背景変更",
-      "description": "テキストプロンプトを使用してモデル画像の背景を変更します"
+    "imageEdit": {
+      "title": "画像編集",
+      "description": "Amazon Nova 2 Omniの高度なAI機能を使用して画像を編集します"
     }
   },
   "common": {
@@ -152,29 +151,7 @@
     "processingVTO": "試着リクエストを処理中...",
     "retrievingImages": "生成画像を取得中..."
   },
-  "backgroundReplacement": {
-    "title": "背景変更",
-    "sourceImage": "ソース画像",
-    "backgroundParameters": "背景パラメーター",
-    "backgroundPrompt": "背景説明プロンプト",
-    "backgroundPromptPlaceholder": "例：山の美しい夕日、モダンなオフィスの内装、トロピカルビーチの風景",
-    "backgroundPromptHelp": "新しい背景の詳細な説明を英語で入力してください（最大1024文字）",
-    "maskPrompt": "保存する領域のマスク画像",
-    "maskPromptPlaceholder": "例：人、人物、顔",
-    "maskPromptHelp": "背景変更から保護する領域を英語で指定します（デフォルト：people）",
-    "customMaskImage": "カスタムマスク画像（オプション）",
-    "customMaskHelp": "保護する領域を正確に指定するためのカスタムマスク画像をアップロード",
-    "createMaskImage": "マスク画像を作成",
-    "advancedParameters": "詳細パラメーター",
-    "modelId": "モデルID",
-    "outPaintingMode": "アウトペインティングモード",
-    "cfgScale": "CFGスケール",
-    "generateBackground": "生成",
-    "generating": "生成中...",
-    "generatedImages": "生成画像",
-    "emptyMessage": "背景変更の結果がここに表示されます",
-    "resetButton": "リセット"
-  },
+
   "imageEdit": {
     "title": "画像編集",
     "sourceImage": "ソース画像",

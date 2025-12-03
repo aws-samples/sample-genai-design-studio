@@ -8,7 +8,6 @@ import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import Home from './pages/Home';
 import VirtualTryOn from './pages/VirtualTryOn';
 import ModelGeneration from './pages/ModelGeneration';
-import BackgroundReplacement from './pages/BackgroundReplacement';
 import ImageEdit from './pages/ImageEdit';
 import Settings from './pages/Settings';
 import './i18n'; // i18n初期化
@@ -25,7 +24,6 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/virtual-try-on" element={<VirtualTryOn />} />
               <Route path="/model-generation" element={<ModelGeneration />} />
-              <Route path="/background-replacement" element={<BackgroundReplacement />} />
               <Route path="/image-edit" element={<ImageEdit />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
