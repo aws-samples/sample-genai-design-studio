@@ -29,6 +29,29 @@ export const canvasToFile = (canvas: HTMLCanvasElement, filename: string = 'comb
 };
 
 /**
+ * Convert any image file to PNG format
+ */
+export const convertImageToPNG = async (file: File): Promise<File> => {
+  if (file.type === 'image/png') {
+    return file;
+  }
+  
+  const img = await loadImage(file);
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  
+  URL.revokeObjectURL(img.src);
+  
+  const pngFileName = file.name.replace(/\.(jpe?g|webp)$/i, '.png');
+  return await canvasToFile(canvas, pngFileName);
+};
+
+/**
  * Combine two images horizontally with black padding for different aspect ratios
  */
 export const combineImagesHorizontally = async (
