@@ -25,6 +25,7 @@ import {
   downloadImageFromS3,
 } from '../hooks/api';
 import { validateNova2ImageSize } from '../utils/validation';
+import { convertImageToPNG } from '../utils/imageUtils';
 
 const ImageEdit: React.FC = () => {
   const { t } = useTranslation();
@@ -175,9 +176,11 @@ const ImageEdit: React.FC = () => {
 
       const inputImageObjectName = `${groupId}/${userId}/image_edit/${date_folder}/${uid}/source_image.png`;
 
+      const pngFile = await convertImageToPNG(imageEdit.sourceImageFile!);
+
       const uploadUrlResponse = await getPresignedUploadUrl(inputImageObjectName);
       const uploadSuccess = await uploadFileToS3(
-        imageEdit.sourceImageFile!,
+        pngFile,
         uploadUrlResponse.url
       );
 
