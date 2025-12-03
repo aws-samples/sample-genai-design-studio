@@ -24,12 +24,15 @@ import {
   getPresignedDownloadUrl,
   downloadImageFromS3,
 } from '../hooks/api';
+import { validateNova2ImageSize } from '../utils/validation';
 
 const ImageEdit: React.FC = () => {
   const { t } = useTranslation();
   const {
     imageEdit,
     setImageEditSourceImage,
+    setImageEditSourceImageDimensions,
+    setImageEditSizeWarning,
     setImageEditGeneratedImages,
     setImageEditSelectedImageIndex,
     setImageEditParameters,
@@ -39,15 +42,37 @@ const ImageEdit: React.FC = () => {
 
 
   const handleSourceImageUpload = useCallback(
-    (file: File | null) => {
+    async (file: File | null) => {
       if (file) {
         const url = URL.createObjectURL(file);
         setImageEditSourceImage(file, url);
+        
+        // Load image to get dimensions
+        const img = new Image();
+        img.src = url;
+        
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            const width = img.width;
+            const height = img.height;
+            
+            // Save dimensions
+            setImageEditSourceImageDimensions({ width, height });
+            
+            // Validate size and set warning if needed
+            const warning = validateNova2ImageSize(width, height);
+            setImageEditSizeWarning(warning);
+            
+            resolve();
+          };
+        });
       } else {
         setImageEditSourceImage(null, null);
+        setImageEditSourceImageDimensions(null);
+        setImageEditSizeWarning(null);
       }
     },
-    [setImageEditSourceImage]
+    [setImageEditSourceImage, setImageEditSourceImageDimensions, setImageEditSizeWarning]
   );
 
   const handlePromptChange = useCallback(
@@ -174,6 +199,10 @@ const ImageEdit: React.FC = () => {
         );
       }
 
+      // Get image dimensions from state (or use defaults if not available)
+      const height = imageEdit.sourceImageDimensions?.height || 512;
+      const width = imageEdit.sourceImageDimensions?.width || 512;
+
       console.log('📤 Sending image edit request:', {
         groupId,
         userId,
@@ -184,6 +213,8 @@ const ImageEdit: React.FC = () => {
         prompt: imageEdit.parameters.prompt,
         inputImageObjectName,
         numberOfImages,
+        height,
+        width,
       });
 
       const response = await processImageEdit({
@@ -196,6 +227,8 @@ const ImageEdit: React.FC = () => {
         prompt: imageEdit.parameters.prompt,
         inputImageObjectName,
         numberOfImages,
+        height,
+        width,
       });
 
       console.log('📨 Image edit API response:', response);
@@ -253,6 +286,11 @@ const ImageEdit: React.FC = () => {
                 uploadedImage={imageEdit.sourceImage}
                 label={t('imageEdit.uploadSourceImage')}
               />
+              {imageEdit.sizeWarning && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  {imageEdit.sizeWarning}
+                </Alert>
+              )}
             </AccordionDetails>
           </Accordion>
 

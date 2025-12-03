@@ -8,6 +8,19 @@ const VALID_DIMENSIONS = [
   1824, 2048, 2288, 2512, 2720, 2896, 3536, 4096
 ];
 
+// Valid image sizes for Nova 2 Omni (width x height)
+const VALID_NOVA2_SIZES = [
+  { width: 2880, height: 1440 },
+  { width: 2704, height: 1520 },
+  { width: 2496, height: 1664 },
+  { width: 2352, height: 1760 },
+  { width: 2048, height: 2048 },
+  { width: 1440, height: 2880 },
+  { width: 1760, height: 2352 },
+  { width: 1664, height: 2496 },
+  { width: 1520, height: 2704 }
+];
+
 // Image validation constants based on Amazon Nova Canvas specifications
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -287,4 +300,17 @@ export const getValidationErrors = (error: z.ZodError): Record<string, string> =
     errors[path] = err.message;
   });
   return errors;
+};
+
+// Validate Nova 2 image size
+export const validateNova2ImageSize = (width: number, height: number): string | null => {
+  const isValidSize = VALID_NOVA2_SIZES.some(
+    size => size.width === width && size.height === height
+  );
+  
+  if (!isValidSize) {
+    return `Warning: The input image size (${width}x${height}) is not a standard Nova 2 size. The image may be resized during processing.`;
+  }
+  
+  return null;
 };

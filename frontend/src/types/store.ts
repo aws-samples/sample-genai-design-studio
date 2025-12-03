@@ -131,6 +131,7 @@ export interface BackgroundReplacementState {
 export interface ImageEditState {
   sourceImageFile: File | null;
   sourceImage: string | null;
+  sourceImageDimensions: { width: number; height: number } | null;
   generatedImages: GeneratedImage[];
   selectedImageIndex: number;
   parameters: ImageEditParameters;
@@ -139,6 +140,7 @@ export interface ImageEditState {
   processingProgress: boolean;
   downloadProgress: boolean;
   error: string | null;
+  sizeWarning: string | null;
 }
 
 // Language Settings

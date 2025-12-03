@@ -121,6 +121,7 @@ const defaultBackgroundReplacementState: BackgroundReplacementState = {
 const defaultImageEditState: ImageEditState = {
   sourceImageFile: null,
   sourceImage: null,
+  sourceImageDimensions: null,
   generatedImages: [],
   selectedImageIndex: 0,
   parameters: defaultImageEditParameters,
@@ -129,6 +130,7 @@ const defaultImageEditState: ImageEditState = {
   processingProgress: false,
   downloadProgress: false,
   error: null,
+  sizeWarning: null,
 };
 
 // Default Language State
@@ -193,6 +195,8 @@ interface AppStore extends AppState {
 
   // Image Edit Actions
   setImageEditSourceImage: (file: File | null, url: string | null) => void;
+  setImageEditSourceImageDimensions: (dimensions: { width: number; height: number } | null) => void;
+  setImageEditSizeWarning: (warning: string | null) => void;
   setImageEditGeneratedImages: (images: GeneratedImage[]) => void;
   setImageEditSelectedImageIndex: (index: number) => void;
   setImageEditParameters: (parameters: Partial<ImageEditParameters>) => void;
@@ -422,6 +426,22 @@ export const useAppStore = create<AppStore>((set, _get) => ({
         ...state.imageEdit,
         sourceImageFile: file,
         sourceImage: url,
+      },
+    })),
+
+  setImageEditSourceImageDimensions: (dimensions) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        sourceImageDimensions: dimensions,
+      },
+    })),
+
+  setImageEditSizeWarning: (warning) =>
+    set((state) => ({
+      imageEdit: {
+        ...state.imageEdit,
+        sizeWarning: warning,
       },
     })),
 

@@ -181,6 +181,7 @@
     "uploadSourceImage": "Upload Source Image",
     "editPrompt": "Edit Prompt",
     "promptPlaceholder": "e.g., Change the shirt color to blue, Add sunglasses, Make it sunset lighting",
+    "numberOfImages": "Number of Images",
     "generate": "Generate",
     "uploading": "Uploading...",
     "processing": "Processing...",
@@ -194,6 +195,8 @@
     "generationError": "Failed to generate image",
     "unexpectedError": "An unexpected error occurred",
     "error": "Error",
-    "timeoutError": "Image generation timed out. Please try again."
+    "timeoutError": "Image generation timed out. Please try again.",
+    "presignedUrlError": "Failed to obtain presigned URL.",
+    "pollingError": "Error occurred during polling setup."
   }
 }
