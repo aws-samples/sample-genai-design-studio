@@ -40,8 +40,8 @@ const defaultModelGenerationParameters: ModelGenerationParameters = {
   prompt: '',
   modelId: 'nova2', // Changed default to Nova 2 Omni
   cfgScale: 6.5,
-  height: 1024,
-  width: 1024,
+  height: 2048, // Nova2 default size
+  width: 2048,  // Nova2 default size
   numberOfImages: 1,
 };
 

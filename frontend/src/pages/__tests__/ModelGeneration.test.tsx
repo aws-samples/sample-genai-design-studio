@@ -173,12 +173,28 @@ describe('ModelGeneration', () => {
     expect(screen.getByPlaceholderText(/e.g.,/)).toBeInTheDocument()
   })
 
-  it('renders the generation parameters section', () => {
+  it('renders the generation parameters section', async () => {
     renderModelGeneration()
     
     expect(screen.getByText('Generation Parameters')).toBeInTheDocument()
     expect(screen.getAllByText(/Number of Images/).length).toBeGreaterThan(0)
-    expect(screen.getByText(/CFG Scale/)).toBeInTheDocument()
+    
+    // CFG Scale should NOT be visible for Nova2 (default model)
+    expect(screen.queryByText(/CFG Scale/)).not.toBeInTheDocument()
+    
+    // Change to Nova Canvas to see CFG Scale
+    const selectElement = screen.getByRole('combobox', { name: /Model Selection/i })
+    fireEvent.mouseDown(selectElement)
+    
+    await waitFor(() => {
+      const novaCanvasOption = screen.getByText('Nova Canvas')
+      fireEvent.click(novaCanvasOption)
+    })
+    
+    // Now CFG Scale should be visible
+    await waitFor(() => {
+      expect(screen.getByText(/CFG Scale/)).toBeInTheDocument()
+    })
   })
 
   it('disables generate button when prompt is empty', () => {
