@@ -174,7 +174,9 @@
     "error": "エラー",
     "timeoutError": "画像生成がタイムアウトしました。もう一度お試しください。",
     "presignedUrlError": "プリサインドURLの取得に失敗しました。",
-    "pollingError": "ポーリング設定中にエラーが発生しました。"
+    "pollingError": "ポーリング設定中にエラーが発生しました。",
+    "convertingImage": "画像をPNGに変換中...",
+    "conversionError": "画像フォーマットの変換に失敗しました"
   },
   "images": {
     "frontImage": "フロント画像",
