@@ -176,7 +176,12 @@ const ImageEdit: React.FC = () => {
 
       const inputImageObjectName = `${groupId}/${userId}/image_edit/${date_folder}/${uid}/source_image.png`;
 
-      const pngFile = await convertImageToPNG(imageEdit.sourceImageFile!);
+      let pngFile: File;
+      try {
+        pngFile = await convertImageToPNG(imageEdit.sourceImageFile!);
+      } catch (conversionError) {
+        throw new Error(t('imageEdit.conversionError'));
+      }
 
       const uploadUrlResponse = await getPresignedUploadUrl(inputImageObjectName);
       const uploadSuccess = await uploadFileToS3(
