@@ -44,6 +44,7 @@ export interface BackgroundReplacementParameters {
 // Image Edit Parameters
 export interface ImageEditParameters {
   prompt: string;
+  numberOfImages: number;
 }
 
 // Generated Image Type

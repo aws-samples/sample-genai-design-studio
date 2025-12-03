@@ -60,6 +60,7 @@ const defaultBackgroundReplacementParameters: BackgroundReplacementParameters = 
 // Default Image Edit Parameters
 const defaultImageEditParameters: ImageEditParameters = {
   prompt: '',
+  numberOfImages: 1,
 };
 
 // Default VTO State

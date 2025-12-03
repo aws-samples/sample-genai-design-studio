@@ -167,7 +167,7 @@ const ImageEdit: React.FC = () => {
         downloadProgress: false,
       });
 
-      const numberOfImages = 1;
+      const numberOfImages = imageEdit.parameters.numberOfImages;
       const outputObjectNames = [];
       for (let i = 0; i < numberOfImages; i++) {
         outputObjectNames.push(
@@ -273,17 +273,28 @@ const ImageEdit: React.FC = () => {
               <Typography variant="h6">{t('imageEdit.editPrompt')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                value={imageEdit.parameters.prompt}
-                onChange={handlePromptChange}
-                placeholder={t('imageEdit.promptPlaceholder')}
-                disabled={imageEdit.isLoading}
-                inputProps={{ maxLength: 1024 }}
-                helperText={`${imageEdit.parameters.prompt.length}/1024`}
-              />
+              <Stack spacing={2}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={imageEdit.parameters.prompt}
+                  onChange={handlePromptChange}
+                  placeholder={t('imageEdit.promptPlaceholder')}
+                  disabled={imageEdit.isLoading}
+                  inputProps={{ maxLength: 1024 }}
+                  helperText={`${imageEdit.parameters.prompt.length}/1024`}
+                />
+                <TextField
+                  fullWidth
+                  type="number"
+                  label={t('imageEdit.numberOfImages')}
+                  value={imageEdit.parameters.numberOfImages}
+                  onChange={(e) => setImageEditParameters({ numberOfImages: Number(e.target.value) })}
+                  inputProps={{ min: 1, max: 5, step: 1 }}
+                  disabled={imageEdit.isLoading}
+                />
+              </Stack>
             </AccordionDetails>
           </Accordion>
 
