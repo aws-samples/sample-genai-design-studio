@@ -312,8 +312,7 @@ const ImageEdit: React.FC = () => {
                   onChange={handlePromptChange}
                   placeholder={t('imageEdit.promptPlaceholder')}
                   disabled={imageEdit.isLoading}
-                  inputProps={{ maxLength: 1024 }}
-                  helperText={`${imageEdit.parameters.prompt.length}/1024`}
+                  helperText={`${imageEdit.parameters.prompt.length} characters`}
                 />
                 <TextField
                   fullWidth

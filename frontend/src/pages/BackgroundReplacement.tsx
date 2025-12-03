@@ -282,7 +282,6 @@ const BackgroundReplacement: React.FC = () => {
                   value={prompt}
                   onChange={(e) => setBackgroundParameters({ prompt: e.target.value })}
                   helperText={t('backgroundReplacement.backgroundPromptHelp')}
-                  inputProps={{ maxLength: 1024 }}
                 />
 
                 {/* Mask Image */}
