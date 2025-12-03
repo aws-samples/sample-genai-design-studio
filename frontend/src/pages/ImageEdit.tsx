@@ -118,8 +118,7 @@ const ImageEdit: React.FC = () => {
     [setImageEditGeneratedImages, setImageEditLoadingState, t]
   );
 
-  const handleGenerate = useCallback(async () => {
-    // Simple validation
+  const handleGenerate = async () => {
     if (!imageEdit.sourceImageFile) {
       setImageEditLoadingState({ error: t('imageEdit.sourceImageRequired') });
       return;
@@ -223,14 +222,7 @@ const ImageEdit: React.FC = () => {
         downloadProgress: false,
       });
     }
-  }, [
-    imageEdit.sourceImageFile,
-    imageEdit.parameters.prompt,
-    setImageEditLoadingState,
-    setImageEditGeneratedImages,
-    pollForGeneratedImages,
-    t,
-  ]);
+  };
 
   const handleImageSelect = useCallback(
     (index: number) => {
