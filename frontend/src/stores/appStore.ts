@@ -38,7 +38,7 @@ const defaultVTOParameters: VTOParameters = {
 // Default Model Generation Parameters
 const defaultModelGenerationParameters: ModelGenerationParameters = {
   prompt: '',
-  modelId: 'nova2', // Changed default to Nova 2
+  modelId: 'nova2', // Changed default to Nova 2 Omni
   cfgScale: 6.5,
   height: 1024,
   width: 1024,

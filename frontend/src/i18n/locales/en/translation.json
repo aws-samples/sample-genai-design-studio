@@ -39,7 +39,7 @@
     "modelOptions": {
       "novaCanvas": "Nova Canvas",
       "novaCanvasDescription": "Standard image generation model",
-      "nova2": "Nova 2",
+      "nova2": "Nova 2 Omni",
       "nova2Description": "Advanced multimodal model"
     },
     "textPrompt": "Text Prompt",

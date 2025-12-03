@@ -385,7 +385,7 @@ describe('API hooks', () => {
       await processNovaModel(params)
 
       const callArgs = mockApiClient.post.mock.calls[0][1]
-      expect(callArgs.model_id).toBe('nova2') // Changed default to Nova 2
+      expect(callArgs.model_id).toBe('nova2') // Changed default to Nova 2 Omni
       expect(callArgs.cfg_scale).toBe(6.5) // change 8.0 to 6.5
       expect(callArgs.height).toBe(1024)
       expect(callArgs.width).toBe(1024)

@@ -180,7 +180,7 @@ const ModelGeneration: React.FC = () => {
     }
   };
 
-  // Model selection options (Nova 2 first as default)
+  // Model selection options (Nova 2 Omni first as default)
   const MODEL_OPTIONS = [
     {
       value: 'nova2',

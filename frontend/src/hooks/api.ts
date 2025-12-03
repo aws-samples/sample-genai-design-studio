@@ -227,7 +227,7 @@ export const processNovaModel = async (params: {
       uid: params.uid,
       object_names: params.objectNames,
       prompt: params.prompt,
-      model_id: params.modelId || 'nova2', // Changed default to Nova 2
+      model_id: params.modelId || 'nova2', // Changed default to Nova 2 Omni
       cfg_scale: params.cfgScale || 6.5,
       height: params.height || 1024,
       width: params.width || 1024,

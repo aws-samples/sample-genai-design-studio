@@ -308,7 +308,7 @@ export const validateNova2ImageSize = (width: number, height: number): string | 
   );
   
   if (!isValidSize) {
-    return `Warning: The input image size (${width}x${height}) is not a standard Nova 2 size. The image may be resized during processing.`;
+    return `Warning: The input image size (${width}x${height}) is not a standard Nova 2 Omni size. The image may be resized during processing.`;
   }
   
   return null;

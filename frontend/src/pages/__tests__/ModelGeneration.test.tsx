@@ -47,7 +47,7 @@ describe('ModelGeneration', () => {
     expect(selectElement).toBeInTheDocument()
   })
 
-  it('has Nova 2 selected by default', () => {
+  it('has Nova 2 Omni selected by default', () => {
     renderModelGeneration()
     
     // Check the store state directly (MUI Select doesn't expose value in test environment)
@@ -81,7 +81,7 @@ describe('ModelGeneration', () => {
     })
   })
 
-  it('sends model_id to API when generating with Nova 2 (default)', async () => {
+  it('sends model_id to API when generating with Nova 2 Omni (default)', async () => {
     const mockGenerateObjectNames = vi.mocked(api.generateObjectNames)
     const mockProcessNovaModel = vi.mocked(api.processNovaModel)
     

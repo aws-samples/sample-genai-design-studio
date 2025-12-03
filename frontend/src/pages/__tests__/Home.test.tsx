@@ -50,11 +50,11 @@ describe('Home', () => {
     expect(screen.getByText('Generate high-quality model images from text prompts to use as the foundation for virtual try-on experiences')).toBeInTheDocument()
   })
 
-  it('renders Background Replacement feature card', () => {
+  it('renders Image Edit feature card', () => {
     renderHome()
     
-    expect(screen.getByRole('heading', { level: 2, name: 'Background Replacement' })).toBeInTheDocument()
-    expect(screen.getByText('Replace backgrounds in model images with text prompts')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Image Edit' })).toBeInTheDocument()
+    expect(screen.getByText('Edit images using Amazon Nova 2 Omni\'s advanced AI capabilities')).toBeInTheDocument()
   })
 
   it('navigates to Virtual Try-On page when card is clicked', () => {
@@ -85,18 +85,18 @@ describe('Home', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/model-generation')
   })
 
-  it('navigates to Background Replacement page when card is clicked', () => {
+  it('navigates to Image Edit page when card is clicked', () => {
     renderHome()
     
-    const bgReplacementCardHeading = screen.getByRole('heading', { level: 2, name: 'Background Replacement' })
-    const bgReplacementCard = bgReplacementCardHeading.closest('.MuiCardActionArea-root')
-    expect(bgReplacementCard).toBeInTheDocument()
+    const imageEditCardHeading = screen.getByRole('heading', { level: 2, name: 'Image Edit' })
+    const imageEditCard = imageEditCardHeading.closest('.MuiCardActionArea-root')
+    expect(imageEditCard).toBeInTheDocument()
     
-    if (bgReplacementCard) {
-      fireEvent.click(bgReplacementCard)
+    if (imageEditCard) {
+      fireEvent.click(imageEditCard)
     }
     
-    expect(mockNavigate).toHaveBeenCalledWith('/background-replacement')
+    expect(mockNavigate).toHaveBeenCalledWith('/image-edit')
   })
 
   it('renders icons for each feature', () => {

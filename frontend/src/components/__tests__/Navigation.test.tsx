@@ -102,16 +102,16 @@ describe('Navigation', () => {
     }
   })
 
-  it('navigates to Background Replacement when clicked', () => {
+  it('navigates to Image Edit when clicked', () => {
     const { mockNavigate } = renderWithRouter(<Navigation>Test Content</Navigation>)
     
-    const bgText = screen.getByText('Background Replacement')
-    const bgButton = bgText.closest('div[role="button"]')
-    expect(bgButton).toBeInTheDocument()
+    const imageEditText = screen.getByText('Image Edit')
+    const imageEditButton = imageEditText.closest('div[role="button"]')
+    expect(imageEditButton).toBeInTheDocument()
     
-    if (bgButton) {
-      fireEvent.click(bgButton)
-      expect(mockNavigate).toHaveBeenCalledWith('/background-replacement')
+    if (imageEditButton) {
+      fireEvent.click(imageEditButton)
+      expect(mockNavigate).toHaveBeenCalledWith('/image-edit')
     }
   })
 
