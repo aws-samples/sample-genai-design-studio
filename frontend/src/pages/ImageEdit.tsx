@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Stack,
   TextField,
@@ -241,7 +240,7 @@ const ImageEdit: React.FC = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <>
       <Typography variant="h4" component="h1" gutterBottom>
         {t('imageEdit.title')}
       </Typography>
@@ -334,7 +333,7 @@ const ImageEdit: React.FC = () => {
           downloadFileName={`image-edit-${imageEdit.selectedImageIndex + 1}.png`}
         />
       </Stack>
-    </Container>
+    </>
   );
 };
 
