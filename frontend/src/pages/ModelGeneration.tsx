@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -30,6 +30,7 @@ import {
 import { validateNovaModelRequest, getValidationErrors } from '../utils/validation';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
+import { getDefaultSizeKeyForModel, getSizeFromKey, getImageSizePresetsForModel } from '../utils/imageSizes';
 
 const ModelGeneration: React.FC = () => {
   const { user } = useAuth();
@@ -194,6 +195,28 @@ const ModelGeneration: React.FC = () => {
     },
   ];
 
+  // Handle model change and update image size to default for the selected model
+  useEffect(() => {
+    const defaultSizeKey = getDefaultSizeKeyForModel(modelId);
+    const presets = getImageSizePresetsForModel(modelId);
+    const defaultSize = getSizeFromKey(defaultSizeKey, presets);
+    
+    if (defaultSize) {
+      // Check if current size is valid for the selected model
+      const currentSizeValid = presets.some(
+        size => size.width === width && size.height === height
+      );
+      
+      // If current size is not valid for the new model, switch to default
+      if (!currentSizeValid) {
+        setModelGenerationParameters({ 
+          width: defaultSize.width, 
+          height: defaultSize.height 
+        });
+      }
+    }
+  }, [modelId]); // Only run when modelId changes
+
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -272,18 +295,6 @@ const ModelGeneration: React.FC = () => {
                   inputProps={{ min: 1, max: 5, step: 1 }}
                 />
 
-                <Box>
-                  <Typography gutterBottom>{t('modelGeneration.cfgScale')}: {cfgScale}</Typography>
-                  <Slider
-                    value={cfgScale}
-                    onChange={(_, value) => setModelGenerationParameters({ cfgScale: value as number })}
-                    min={1.1}
-                    max={10}
-                    step={0.1}
-                    valueLabelDisplay="auto"
-                  />
-                </Box>
-
                 <ImageSizeSelector
                   width={width}
                   height={height}
@@ -291,7 +302,22 @@ const ModelGeneration: React.FC = () => {
                     setModelGenerationParameters({ width: newWidth, height: newHeight });
                   }}
                   label={t('modelGeneration.outputImageSize')}
+                  modelId={modelId}
                 />
+
+                {modelId !== 'nova2' && (
+                  <Box>
+                    <Typography gutterBottom>{t('modelGeneration.cfgScale')}: {cfgScale}</Typography>
+                    <Slider
+                      value={cfgScale}
+                      onChange={(_, value) => setModelGenerationParameters({ cfgScale: value as number })}
+                      min={1.1}
+                      max={10}
+                      step={0.1}
+                      valueLabelDisplay="auto"
+                    />
+                  </Box>
+                )}
               </Stack>
             </AccordionDetails>
           </Accordion>

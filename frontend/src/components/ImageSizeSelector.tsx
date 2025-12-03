@@ -9,7 +9,7 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { IMAGE_SIZE_PRESETS, groupSizesByCategory, getSizeKey } from '../utils/imageSizes';
+import { getImageSizePresetsForModel, groupSizesByCategory, getSizeKey } from '../utils/imageSizes';
 
 interface ImageSizeSelectorProps {
   width: number;
@@ -17,6 +17,7 @@ interface ImageSizeSelectorProps {
   onSizeChange: (width: number, height: number) => void;
   label?: string;
   fullWidth?: boolean;
+  modelId?: string; // Add modelId prop to determine which presets to use
 }
 
 const ImageSizeSelector: React.FC<ImageSizeSelectorProps> = ({
@@ -25,12 +26,14 @@ const ImageSizeSelector: React.FC<ImageSizeSelectorProps> = ({
   onSizeChange,
   label = "Image Size",
   fullWidth = true,
+  modelId = 'amazon.nova-canvas-v1:0', // Default to Canvas
 }) => {
   const currentSizeKey = getSizeKey(width, height);
-  const groupedSizes = groupSizesByCategory();
+  const imagePresets = getImageSizePresetsForModel(modelId);
+  const groupedSizes = groupSizesByCategory(imagePresets);
   
   // Find current size info for display
-  const currentSize = IMAGE_SIZE_PRESETS.find(size => 
+  const currentSize = imagePresets.find(size => 
     size.width === width && size.height === height
   );
 
