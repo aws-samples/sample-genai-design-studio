@@ -18,16 +18,21 @@
 - `POST /vto/nova/process` - Nova Canvas VTO処理を開始
 
 ### モデル生成エンドポイント
-- `POST /vto/nova/model` - Nova Model テキストから画像生成
+- `POST /vto/nova/model` - Nova 2 Omni / Nova Canvas テキストから画像生成
+  - `model_id`パラメーターで使用モデルを選択（`nova2` または `amazon.nova-canvas-v1:0`）
+  - Nova 2: 並列Lambda実行による高速な複数画像生成
+  - Nova Canvas: 詳細なパラメーター制御による高品質な画像生成
 
-### 背景置換エンドポイント
-- `POST /vto/nova/background` - Nova Canvas 背景置換処理
+### 画像編集エンドポイント
+- `POST /vto/nova/edit` - Nova 2 Omni 画像編集処理
+  - 入力画像と編集プロンプトを指定して画像を編集
+  - 複数画像の並列生成に対応（最大5枚）
+  - 入力画像サイズを保持して生成
 
 ### ユーティリティエンドポイント
 - `GET /utils/get/objectname` - S3オブジェクト名生成
 - `POST /utils/s3url/upload` - S3アップロード用プリサインドURL取得
 - `POST /utils/s3url/download` - S3ダウンロード用プリサインドURL取得
-- 
 
 ## 推奨テスト実行フロー
 
@@ -294,6 +299,7 @@ lambda_vto_test.zsh
 - **目的**: Nova Model を使用したテキストから画像生成のテスト
 - **エンドポイント**: `POST /vto/nova/model`
 - **パラメータ**: `prompt`, `model_id`, `cfg_scale`, `height`, `width`
+- **モデル選択**: `model_id`で`nova2`または`amazon.nova-canvas-v1:0`を指定
 - **検証項目**: テキストプロンプトからの画像生成確認
 
 **8. test_nova_model_{custom_params, three_images, four_images_error}**
@@ -302,11 +308,26 @@ lambda_vto_test.zsh
   - カスタムパラメータでの画像生成
   - 3画像同時生成（上限値）
   - 4画像生成エラーケース（上限超過）
+  - Nova 2での並列Lambda実行確認
 
-**9. エラーケーステスト**
+**9. test_nova_edit_workflow**
+- **目的**: Nova 2 Omni 画像編集の完全ワークフローテスト
+- **エンドポイント**: `POST /vto/nova/edit`
+- **手順**:
+  1. オブジェクト名生成
+  2. 入力画像のアップロード
+  3. 画像編集処理実行
+  4. 生成画像のダウンロード（リモートモードのみ）
+- **検証項目**: 
+  - リクエスト受付確認 (`status: "accepted"`)
+  - `object_names` の生成確認
+  - 入力画像サイズの保持確認
+
+**10. エラーケーステスト**
 - `test_nova_vto_missing_required_fields`: 必須フィールド欠如時のバリデーションエラー
 - `test_nova_model_missing_prompt`: プロンプト欠如時のエラー
 - `test_nova_model_missing_required_fields`: Nova Model 必須フィールド欠如時のエラー
+- `test_nova_edit_missing_required_fields`: Nova Edit 必須フィールド欠如時のエラー
 
 ##### クラス変数・設定
 
@@ -371,9 +392,9 @@ lambda_vto_test.zsh
 **test_text_to_image_generation**
 - **目的**: 基本的なテキストから画像生成のテスト
 - **プロンプト**: `"A beautiful landscape with mountains and a lake"`
-- **モデル**: `amazon.titan-image-generator-v2:0`
+- **モデル**: `amazon.titan-image-generator-v2:0` または `nova2`
 - **パラメータ**: 
-  - `cfg_scale: 8.0`
+  - `cfg_scale: 8.0`（Nova Canvasのみ）
   - `height: 1024, width: 1024`
   - `number_of_images: 1`
 - **出力**: `test_data/output/{mode}/text_to_image_test/text_to_image_result_*.png`
@@ -381,6 +402,7 @@ lambda_vto_test.zsh
 **test_text_to_image_generation_japanese**
 - **目的**: 日本語プロンプトでの画像生成テスト
 - **プロンプト**: `"美しい女性のモデルが撮影スタジオでポージングしている。白背景にモデルの全身が映っていて、正面を向いて立っている。モデルは美しい赤いワンピースをきている"`
+- **プロンプト翻訳**: 自動的に英語に翻訳されてモデルに送信
 - **出力**: `text_to_image_japanese_result_*.png`
 
 **test_text_to_image_generation_english**
@@ -392,9 +414,10 @@ lambda_vto_test.zsh
 - **目的**: カスタムパラメータでの画像生成テスト
 - **プロンプト**: `"A futuristic city with flying cars and neon lights"`
 - **パラメータ**: 
-  - `cfg_scale: 10.0`（高値）
+  - `cfg_scale: 10.0`（高値、Nova Canvasのみ）
   - `height: 512, width: 512`（異なるサイズ）
   - `number_of_images: 3`（複数画像）
+  - Nova 2: 並列Lambda実行で高速生成
 - **出力**: `text_to_image_custom_*.png`
 
 **test_text_to_image_with_s3_save**
@@ -404,6 +427,37 @@ lambda_vto_test.zsh
   - 画像生成の確認
   - S3 URLの返却確認（利用可能な場合）
 - **出力**: `text_to_image_s3_save_*.png`
+
+**3. 画像編集テスト（Nova 2 Omni）**
+
+**test_nova2_image_edit_basic**
+- **目的**: 基本的な画像編集のテスト
+- **入力画像**: `test_data/input/model.png`
+- **編集プロンプト**: `"Change the dress color to blue"`
+- **パラメータ**:
+  - `model_id: "nova2"`
+  - `number_of_images: 1`
+  - 入力画像サイズを保持
+- **出力**: `test_data/output/{mode}/image_edit_test/edit_result_*.png`
+
+**test_nova2_image_edit_japanese**
+- **目的**: 日本語プロンプトでの画像編集テスト
+- **編集プロンプト**: `"ドレスの色を青に変更して、背景に山と湖を追加"`
+- **プロンプト翻訳**: 自動的に英語に翻訳
+- **出力**: `edit_japanese_result_*.png`
+
+**test_nova2_image_edit_multiple**
+- **目的**: 複数画像の並列編集テスト
+- **編集プロンプト**: `"Add sunglasses and change lighting to golden hour"`
+- **パラメータ**: `number_of_images: 3`
+- **検証項目**: 3つのLambdaが並列実行され、3枚の画像が生成されること
+- **出力**: `edit_multiple_*.png`
+
+**test_nova2_image_edit_size_preservation**
+- **目的**: 入力画像サイズ保持の確認
+- **入力画像**: 様々なサイズの画像（512x512、1024x1024等）
+- **検証項目**: 生成画像が入力画像と同じサイズであること
+- **出力**: `edit_size_test_*.png`
 
 **3. エラーハンドリングテスト**
 

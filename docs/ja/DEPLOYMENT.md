@@ -1,9 +1,6 @@
 # デプロイ方法
 
 ## 事前準備
-### Bedrock
-us-east-1、ap-northeast-1、eu-west-1 のいずれかのリージョンで、Nova モデルと Claude Haiku 3 の有効化を行ってください。本サンプルではNova Canvasの画像生成モデル（us-east-1、ap-northeast-1、eu-west-1でのみ利用可能）と Nova Micro/Lite などのテキストモデル、およびClaude Haiku 3を使用しています。
-[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` からNovaモデルファミリー一式とClaude Haiku 3をチェックし、`Save changes`をクリックします
 ### CDK実行環境
 CDK のプロジェクトをデプロイするには、以下の環境が必要です。事前に環境のセットアップを実施してください。
 

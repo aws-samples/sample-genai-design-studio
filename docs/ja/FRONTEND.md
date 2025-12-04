@@ -215,47 +215,58 @@ npm test -- src/components/__tests__/
     sellerId: 'seller123', itemId: 'item456',
     dateFolder: '2024-01-01', timestamp: '123456789', uid: 'test-uid',
     objectNames: ['output.jpg'], prompt: 'A beautiful landscape',
-    modelId: 'amazon.nova-pro-v1:0', cfgScale: 10.0,
+    modelId: 'nova2', cfgScale: 10.0,
     height: 512, width: 512, numberOfImages: 3
   }
   ```
 - **API呼び出し**: `POST /vto/nova/model` with 変換されたパラメータ
-- **Expected Output**: `{status: 'success', object_names: ['generated1.jpg']}`
-- **検証項目**: 画像生成パラメータが正しく送信されること
+- **Expected Output**: `{status: 'accepted', object_names: ['generated1.jpg', 'generated2.jpg', 'generated3.jpg']}`
+- **検証項目**: 画像生成パラメータが正しく送信されること、Nova 2での並列生成
 
 **テストケース2: デフォルト値使用**
 - **Input**: 最小限のパラメータ（プロンプトのみ）
 - **検証デフォルト値**:
-  - `model_id: 'amazon.titan-image-generator-v2:0'`
-  - `cfg_scale: 8.0`
+  - `model_id: 'nova2'`（デフォルト）
+  - `cfg_scale: 8.0`（Nova Canvasのみ）
   - `height: 1024, width: 1024`
   - `number_of_images: 1`
 
-#### processBackgroundReplacement
-**目的**: 背景置換処理API呼び出しテスト
+**テストケース3: モデル選択**
+- **Input**: `modelId: 'amazon.nova-canvas-v1:0'`
+- **検証項目**: Nova Canvasモデルが選択され、CFGスケールが適用されること
 
-**テストケース1: 基本的な背景置換**
+#### processImageEdit
+**目的**: Nova 2 Omni画像編集API呼び出しテスト
+
+**テストケース1: 基本的な画像編集**
 - **Input**:
   ```typescript
   {
     sellerId: 'seller123', itemId: 'item456',
     dateFolder: '2024-01-01', timestamp: '123456789', uid: 'test-uid',
-    objectNames: ['bg_replaced.jpg'],
-    sourceImageObjectName: 'source.jpg',
-    backgroundPrompt: 'Beautiful beach with clear blue sky'
+    objectNames: ['edited.jpg'],
+    inputImageObjectName: 'source.jpg',
+    prompt: 'Change the dress color to blue',
+    height: 1024, width: 1024,
+    numberOfImages: 1
   }
   ```
-- **API呼び出し**: `POST /background-replacement/process` with 変換されたパラメータ
-- **Expected Output**: `{status: 'accepted', object_names: ['bg_replaced.jpg']}`
-- **検証項目**: 背景置換パラメータが正しく送信されること
+- **API呼び出し**: `POST /vto/nova/edit` with 変換されたパラメータ
+- **Expected Output**: `{status: 'accepted', object_names: ['edited.jpg']}`
+- **検証項目**: 画像編集パラメータが正しく送信されること
 
-**テストケース2: マスクプロンプト使用**
-- **Input**: 基本パラメータ + `maskPrompt: 'person, human figure'`
-- **検証項目**: マスクプロンプトが適切に処理されること
+**テストケース2: 日本語プロンプト**
+- **Input**: 基本パラメータ + `prompt: 'ドレスの色を青に変更'`
+- **検証項目**: 日本語プロンプトが適切に処理されること（バックエンドで翻訳）
 
-**テストケース3: カスタムマスク画像使用**
-- **Input**: 基本パラメータ + `maskImageObjectName: 'custom_mask.png'`
-- **検証項目**: カスタムマスク画像指定が正しく処理されること
+**テストケース3: 複数画像生成**
+- **Input**: 基本パラメータ + `numberOfImages: 3`
+- **Expected Output**: `{status: 'accepted', object_names: ['edited_0.jpg', 'edited_1.jpg', 'edited_2.jpg']}`
+- **検証項目**: 複数画像の並列生成が正しく処理されること
+
+**テストケース4: 画像サイズ保持**
+- **Input**: 様々なサイズ（512x512、2048x2048等）
+- **検証項目**: 入力画像サイズが正しくAPIに渡されること
 
 #### downloadFromS3
 **目的**: S3からのデータダウンロードテスト
@@ -267,8 +278,8 @@ npm test -- src/components/__tests__/
 
 ### Navigation.test.tsx
 - **ナビゲーション表示**: 全メニュー項目の表示確認
-  - ブランド名「Nova Canvas」の表示
-  - 各ページリンク（Home, Virtual Try-On, Model Generation, Settings）の表示
+  - ブランド名「GenAI Design Studio」の表示
+  - 各ページリンク（Home, Virtual Try-On, Model Generation, Image Edit, Settings）の表示
 - **子コンテンツ表示**: children propsで渡されたコンテンツの表示確認
 - **ナビゲーション機能**: メニュークリック時の画面遷移テスト
   - useNavigateフックの呼び出し確認
@@ -301,14 +312,16 @@ npm test -- src/components/__tests__/
 
 ### Home.test.tsx
 - **メインタイトル表示**: ホームページのタイトル表示確認
-  - 「Amazon Nova Canvas」タイトル
+  - 「GenAI Design Studio」タイトル
   - サブタイトルの表示
 - **機能カード表示**: 各機能の紹介カード表示確認
   - Virtual Try-Onカードの表示と説明文
   - Model Generationカードの表示と説明文
+  - Image Editカードの表示と説明文
 - **ナビゲーション機能**: カードクリック時の画面遷移テスト
   - Virtual Try-Onページへの遷移
   - Model Generationページへの遷移
+  - Image Editページへの遷移
 - **UI要素**: アイコンとレイアウトの確認
   - SVGアイコンの表示
   - ホバーエフェクトスタイルの適用
@@ -331,3 +344,43 @@ npm test -- src/components/__tests__/
   - Paperコンポーネント内のList構造
   - 設定間のDivider表示
   - ListItemSecondaryActionでのSwitch配置
+
+### ImageEdit.test.tsx
+- **ページレンダリング**: 画像編集ページの基本表示確認
+  - ページタイトル「Image Edit」の表示
+  - 画像アップロードセクションの表示
+  - プロンプト入力フィールドの表示
+  - 生成ボタンの表示
+- **画像アップロード機能**: 画像ファイルのアップロード処理テスト
+  - ファイル選択時のコールバック呼び出し
+  - 画像プレビューの表示
+  - 画像サイズの取得と状態保存
+  - PNG形式への自動変換（JPEG/WebP入力時）
+- **画像サイズ検証**: Nova 2推奨サイズの検証テスト
+  - 有効なサイズ（2880x1440、2048x2048等）の場合は警告なし
+  - 無効なサイズの場合は警告メッセージ表示
+  - 警告表示時も処理は続行可能
+- **プロンプト入力**: 編集プロンプトの入力テスト
+  - テキストフィールドへの入力
+  - 日本語・英語プロンプトの受け入れ
+  - 最大1024文字の制限
+- **バリデーション**: 入力検証のテスト
+  - 空のプロンプトでエラー表示
+  - 画像未アップロードでエラー表示
+- **API呼び出し**: 画像編集API呼び出しテスト
+  - 正しいパラメータでAPI呼び出し
+  - 入力画像サイズの送信確認
+  - 複数画像生成パラメータの送信
+- **S3ポーリング**: 画像生成完了の検知テスト
+  - 再帰的なsetTimeoutによるポーリング
+  - Promise.allによる全画像の並列取得
+  - 全画像揃ってからの一度の状態更新
+  - タイムアウト処理（5分）
+- **エラー表示**: エラーメッセージの表示確認
+  - アップロードエラー
+  - API呼び出しエラー
+  - ポーリングタイムアウトエラー
+- **画像表示**: 生成画像の表示テスト
+  - ImageDisplayコンポーネントの使用
+  - 複数画像のグリッド表示
+  - ローディング状態の表示
