@@ -18,10 +18,16 @@ Testing includes the following two main components:
 - `POST /vto/nova/process` - Start Nova Canvas VTO processing
 
 ### Model Generation Endpoints
-- `POST /vto/nova/model` - Nova Model text-to-image generation
+- `POST /vto/nova/model` - Nova 2 Omni / Nova Canvas text-to-image generation
+  - Select model using `model_id` parameter (`nova2` or `amazon.nova-canvas-v1:0`)
+  - Nova 2: Fast multi-image generation through parallel Lambda execution
+  - Nova Canvas: High-quality image generation with detailed parameter control
 
-### Background Replacement Endpoints
-- `POST /vto/nova/background` - Nova Canvas background replacement processing
+### Image Editing Endpoints
+- `POST /vto/nova/edit` - Nova 2 Omni image editing processing
+  - Edit images by specifying input image and edit prompt
+  - Support parallel generation of multiple images (up to 5)
+  - Preserve input image size for generation
 
 ### Utility Endpoints
 - `GET /utils/get/objectname` - S3 object name generation
@@ -227,7 +233,7 @@ cd lambda/test/
 - `LAMBDA_FUNCTION_NAME`: Lambda function name acquired from CDK output
 - `VTO_BUCKET`: S3 bucket name acquired from CDK output
 - `--mode remote`: Remote execution mode flag
-- `--region ap-northeast-1`: AWS region specification
+- `--region us-east-1`: AWS region specification
 
 ---
 
@@ -292,6 +298,7 @@ cd lambda/test/
 - **Purpose**: Test text-to-image generation using Nova Model
 - **Endpoint**: `POST /vto/nova/model`
 - **Parameters**: `prompt`, `model_id`, `cfg_scale`, `height`, `width`
+- **Model Selection**: Specify `nova2` or `amazon.nova-canvas-v1:0` with `model_id`
 - **Verification Items**: Verify image generation from text prompt
 
 **8. test_nova_model_{custom_params, three_images, four_images_error}**
@@ -300,11 +307,26 @@ cd lambda/test/
   - Image generation with custom parameters
   - 3 image simultaneous generation (limit value)
   - 4 image generation error case (exceeding limit)
+  - Verify parallel Lambda execution with Nova 2
 
-**9. Error Case Tests**
+**9. test_nova_edit_workflow**
+- **Purpose**: Complete workflow test for Nova 2 Omni image editing
+- **Endpoint**: `POST /vto/nova/edit`
+- **Steps**:
+  1. Object name generation
+  2. Input image upload
+  3. Image editing processing execution
+  4. Generated image download (remote mode only)
+- **Verification Items**: 
+  - Request acceptance confirmation (`status: "accepted"`)
+  - `object_names` generation confirmation
+  - Input image size preservation confirmation
+
+**10. Error Case Tests**
 - `test_nova_vto_missing_required_fields`: Validation error when required fields missing
 - `test_nova_model_missing_prompt`: Error when prompt missing
 - `test_nova_model_missing_required_fields`: Error when Nova Model required fields missing
+- `test_nova_edit_missing_required_fields`: Error when Nova Edit required fields missing
 
 ##### Class Variables & Configuration
 
@@ -369,9 +391,9 @@ cd lambda/test/
 **test_text_to_image_generation**
 - **Purpose**: Test basic text-to-image generation
 - **Prompt**: `"A beautiful landscape with mountains and a lake"`
-- **Model**: `amazon.titan-image-generator-v2:0`
+- **Model**: `amazon.titan-image-generator-v2:0` or `nova2`
 - **Parameters**: 
-  - `cfg_scale: 8.0`
+  - `cfg_scale: 8.0` (Nova Canvas only)
   - `height: 1024, width: 1024`
   - `number_of_images: 1`
 - **Output**: `test_data/output/{mode}/text_to_image_test/text_to_image_result_*.png`
@@ -379,6 +401,7 @@ cd lambda/test/
 **test_text_to_image_generation_japanese**
 - **Purpose**: Image generation test with Japanese prompt
 - **Prompt**: `"美しい女性のモデルが撮影スタジオでポージングしている。白背景にモデルの全身が映っていて、正面を向いて立っている。モデルは美しい赤いワンピースをきている"`
+- **Prompt Translation**: Automatically translated to English and sent to model
 - **Output**: `text_to_image_japanese_result_*.png`
 
 **test_text_to_image_generation_english**
@@ -390,9 +413,10 @@ cd lambda/test/
 - **Purpose**: Image generation test with custom parameters
 - **Prompt**: `"A futuristic city with flying cars and neon lights"`
 - **Parameters**: 
-  - `cfg_scale: 10.0` (high value)
+  - `cfg_scale: 10.0` (high value, Nova Canvas only)
   - `height: 512, width: 512` (different size)
   - `number_of_images: 3` (multiple images)
+  - Nova 2: Fast generation through parallel Lambda execution
 - **Output**: `text_to_image_custom_*.png`
 
 **test_text_to_image_with_s3_save**
@@ -403,7 +427,38 @@ cd lambda/test/
   - S3 URL return verification (when available)
 - **Output**: `text_to_image_s3_save_*.png`
 
-**3. Error Handling Tests**
+**3. Image Editing Tests (Nova 2 Omni)**
+
+**test_nova2_image_edit_basic**
+- **Purpose**: Test basic image editing
+- **Input Image**: `test_data/input/model.png`
+- **Edit Prompt**: `"Change the dress color to blue"`
+- **Parameters**:
+  - `model_id: "nova2"`
+  - `number_of_images: 1`
+  - Preserve input image size
+- **Output**: `test_data/output/{mode}/image_edit_test/edit_result_*.png`
+
+**test_nova2_image_edit_japanese**
+- **Purpose**: Image editing test with Japanese prompt
+- **Edit Prompt**: `"ドレスの色を青に変更して、背景に山と湖を追加"`
+- **Prompt Translation**: Automatically translated to English
+- **Output**: `edit_japanese_result_*.png`
+
+**test_nova2_image_edit_multiple**
+- **Purpose**: Test parallel editing of multiple images
+- **Edit Prompt**: `"Add sunglasses and change lighting to golden hour"`
+- **Parameters**: `number_of_images: 3`
+- **Verification Items**: Verify 3 Lambdas execute in parallel and 3 images are generated
+- **Output**: `edit_multiple_*.png`
+
+**test_nova2_image_edit_size_preservation**
+- **Purpose**: Verify input image size preservation
+- **Input Images**: Various sized images (512x512, 1024x1024, etc.)
+- **Verification Items**: Verify generated images are same size as input images
+- **Output**: `edit_size_test_*.png`
+
+**4. Error Handling Tests**
 
 **test_invalid_event_structure**
 - **Purpose**: Error handling for invalid event structure
@@ -419,6 +474,11 @@ cd lambda/test/
 - **Purpose**: Error handling when prompt missing
 - **Input**: Omit prompt in `text_to_image_params`
 - **Expected Result**: Status code 400, `"Prompt is required"` error
+
+**test_image_edit_missing_prompt**
+- **Purpose**: Error handling when edit prompt missing
+- **Input**: Omit prompt in `image_edit_params`
+- **Expected Result**: Status code 400, error message return
 
 ##### Test Mode Configuration
 
@@ -464,11 +524,11 @@ cd lambda/test
 ./local_vto_test.zsh
 
 # 2. CDK deployment
-cd ../cdk
+cd ../../cdk
 npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
 
 # 3. Remote test execution
-cd ../test
+cd ../lambda/test
 
 # API remote test
 ./lambda_api_test.zsh
@@ -489,7 +549,7 @@ python3 test_nova_vto_api.py --base-url https://api.example.com --bucket-name pr
 python3 test_gen_vto_image.py --mode local
 
 # Lambda test (remote)
-python3 test_gen_vto_image.py --mode remote --region ap-northeast-1
+python3 test_gen_vto_image.py --mode remote --region us-east-1
 
 # Execute specific test only
 python3 test_gen_vto_image.py --mode local GenVTOImageTest.test_basic_vto_processing

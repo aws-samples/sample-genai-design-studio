@@ -10,20 +10,37 @@ This sample is a Virtual Try-On solution leveraging image generation AI (Amazon 
 A feature that generates virtual model images by specifying body pose, appearance characteristics, and shooting environment as text prompts.
 
 **Supported Models:**
-- **Amazon Nova Canvas** (default): High-quality image generation with detailed parameter control
-- **Amazon Nova 2 Omni**: Next-generation multimodal model with faster parallel generation
+- **Amazon Nova 2 Omni** (default): Next-generation multimodal model with fast parallel generation and high-precision image generation
+- **Amazon Nova Canvas**: High-quality image generation with detailed parameter control
 
 **Key Features:**
 - **Text Input**: Detailed image description specification through prompts in various languages including English and Japanese
-- **Model Selection**: Choose between Nova Canvas or Nova 2 Omni via `model_id` parameter
+- **Model Selection**: Choose between Nova 2 Omni or Nova Canvas via dropdown menu
 - **Generation Parameters**:
   - Quality control through CFG Scale (1.1-10.0) - Nova Canvas only
   - Image size selection (1024x1024, 768x1344, etc.)
   - Multiple image simultaneous generation (up to 5 images)
-  - Nova 2: Parallel execution for faster multi-image generation
+  - Nova 2: Fast multi-image generation through parallel Lambda execution
 
-### 2. Virtual Try-On
-Virtual try-on functionality using Amazon Nova Canvas. You can use model images created in 1. Model Generation or existing images to dress up while maintaining the details of clothing images. You can also specify details such as jacket open/closed and shirt in/out.
+### 2. Image Editing
+Image editing functionality using Amazon Nova 2 Omni. You can apply edits specified by natural language prompts to existing images.
+
+**Key Features:**
+- **Image Upload**: Upload images to edit (JPEG/PNG/WebP supported, automatic PNG conversion)
+- **Edit Prompt**: Specify edit content in natural language in English or Japanese (up to 1024 characters)
+- **Image Size Preservation**: Generate edited images at the same size as input images
+- **Image Size Validation**: Display warning if not Nova 2 recommended sizes (2880x1440, 2048x2048, etc.)
+- **Multiple Image Generation**: Generate up to 5 edit variations in parallel
+- **S3 Polling**: Automatic detection of image generation completion through asynchronous processing
+
+**Use Cases:**
+- Change clothing colors ("Change red dress to blue")
+- Add/change backgrounds ("Add mountains and lake to background")
+- Add accessories ("Add sunglasses")
+- Adjust lighting/atmosphere ("Change to golden hour lighting")
+
+### 3. Virtual Try-On
+Virtual try-on functionality using Amazon Nova Canvas. You can use model images created in Model Generation or existing images to dress up while maintaining the details of clothing images. You can also specify details such as jacket open/closed and shirt in/out.
 
 **Key Features:**
 - **Image Specification**: Model image, garment image, (mask image)
@@ -38,18 +55,7 @@ Virtual try-on functionality using Amazon Nova Canvas. You can use model images 
   - Merge style (Balanced/Seamless/Detailed)
 - **Generation Settings**: Multiple image generation (up to 5 images), quality selection, CFG scale adjustment
 
-### 3. Background Replacement
-A feature that naturally replaces the background of model images generated in 2. Virtual Try-On by specifying them as text prompts.
 
-**Key Features:**
-- **Background Prompt**: Detailed background description specification in various languages including English and Japanese (up to 1024 characters)
-- **Mask Control**:
-  - Mask prompt (person protection, etc.)
-  - Pinpoint protection through custom mask images
-- **OutPainting Mode**:
-  - `DEFAULT`: Standard background replacement
-  - `PRECISE`: High-precision boundary processing
-- **Detailed Settings**: CFG scale, image size selection, multiple image generation
 
 ### Management Features
 - **User Login**: User management through Amazon Cognito User Pool
@@ -72,7 +78,7 @@ Please refer to the [DEPLOYMENT document](./docs/en/DEPLOYMENT.md) to execute de
 
 - **Frontend**: React + Vite + TypeScript + MUI
 - **Backend API**: FastAPI (Lambda) + Amazon Cognito Authentication
-- **Image Generation**: Python Lambda + Amazon Nova Canvas
+- **Image Generation**: Python Lambda + Amazon Nova 2 Omni / Amazon Nova Canvas
 - **Infrastructure**: AWS CDK (TypeScript)
 - **Storage**: Amazon S3
 - **Security**: AWS WAF + Amazon Cognito

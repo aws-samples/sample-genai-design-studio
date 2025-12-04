@@ -215,47 +215,58 @@ npm test -- src/components/__tests__/
     sellerId: 'seller123', itemId: 'item456',
     dateFolder: '2024-01-01', timestamp: '123456789', uid: 'test-uid',
     objectNames: ['output.jpg'], prompt: 'A beautiful landscape',
-    modelId: 'amazon.nova-pro-v1:0', cfgScale: 10.0,
+    modelId: 'nova2', cfgScale: 10.0,
     height: 512, width: 512, numberOfImages: 3
   }
   ```
 - **API call**: `POST /vto/nova/model` with converted parameters
-- **Expected Output**: `{status: 'success', object_names: ['generated1.jpg']}`
-- **Verification**: Image generation parameters sent correctly
+- **Expected Output**: `{status: 'accepted', object_names: ['generated1.jpg', 'generated2.jpg', 'generated3.jpg']}`
+- **Verification**: Image generation parameters sent correctly, parallel generation with Nova 2
 
 **Test Case 2: Using Default Values**
 - **Input**: Minimum parameters (prompt only)
 - **Verified Default Values**:
-  - `model_id: 'amazon.titan-image-generator-v2:0'`
-  - `cfg_scale: 8.0`
+  - `model_id: 'nova2'` (default)
+  - `cfg_scale: 8.0` (Nova Canvas only)
   - `height: 1024, width: 1024`
   - `number_of_images: 1`
 
-#### processBackgroundReplacement
-**Purpose**: Test background replacement processing API call
+**Test Case 3: Model Selection**
+- **Input**: `modelId: 'amazon.nova-canvas-v1:0'`
+- **Verification**: Nova Canvas model selected and CFG scale applied
 
-**Test Case 1: Basic Background Replacement**
+#### processImageEdit
+**Purpose**: Test Nova 2 Omni image editing API call
+
+**Test Case 1: Basic Image Editing**
 - **Input**:
   ```typescript
   {
     sellerId: 'seller123', itemId: 'item456',
     dateFolder: '2024-01-01', timestamp: '123456789', uid: 'test-uid',
-    objectNames: ['bg_replaced.jpg'],
-    sourceImageObjectName: 'source.jpg',
-    backgroundPrompt: 'Beautiful beach with clear blue sky'
+    objectNames: ['edited.jpg'],
+    inputImageObjectName: 'source.jpg',
+    prompt: 'Change the dress color to blue',
+    height: 1024, width: 1024,
+    numberOfImages: 1
   }
   ```
-- **API call**: `POST /background-replacement/process` with converted parameters
-- **Expected Output**: `{status: 'accepted', object_names: ['bg_replaced.jpg']}`
-- **Verification**: Background replacement parameters sent correctly
+- **API call**: `POST /vto/nova/edit` with converted parameters
+- **Expected Output**: `{status: 'accepted', object_names: ['edited.jpg']}`
+- **Verification**: Image editing parameters sent correctly
 
-**Test Case 2: Using Mask Prompt**
-- **Input**: Basic parameters + `maskPrompt: 'person, human figure'`
-- **Verification**: Mask prompt processed appropriately
+**Test Case 2: Japanese Prompt**
+- **Input**: Basic parameters + `prompt: 'ドレスの色を青に変更'`
+- **Verification**: Japanese prompt processed appropriately (translated on backend)
 
-**Test Case 3: Using Custom Mask Image**
-- **Input**: Basic parameters + `maskImageObjectName: 'custom_mask.png'`
-- **Verification**: Custom mask image specification processed correctly
+**Test Case 3: Multiple Image Generation**
+- **Input**: Basic parameters + `numberOfImages: 3`
+- **Expected Output**: `{status: 'accepted', object_names: ['edited_0.jpg', 'edited_1.jpg', 'edited_2.jpg']}`
+- **Verification**: Parallel generation of multiple images processed correctly
+
+**Test Case 4: Image Size Preservation**
+- **Input**: Various sizes (512x512, 2048x2048, etc.)
+- **Verification**: Input image size correctly passed to API
 
 #### downloadFromS3
 **Purpose**: Test S3 data download
@@ -267,8 +278,8 @@ npm test -- src/components/__tests__/
 
 ### Navigation.test.tsx
 - **Navigation Display**: Confirm display of all menu items
-  - Brand name "Nova Canvas" display
-  - Each page link display (Home, Virtual Try-On, Model Generation, Settings)
+  - Brand name "GenAI Design Studio" display
+  - Each page link display (Home, Virtual Try-On, Model Generation, Image Edit, Settings)
 - **Child Content Display**: Confirm display of content passed via children props
 - **Navigation Function**: Test screen transitions when menu clicked
   - Confirm useNavigate hook calls
@@ -301,14 +312,16 @@ npm test -- src/components/__tests__/
 
 ### Home.test.tsx
 - **Main Title Display**: Confirm homepage title display
-  - "Amazon Nova Canvas" title
+  - "GenAI Design Studio" title
   - Subtitle display
 - **Feature Card Display**: Confirm display of feature introduction cards
   - Virtual Try-On card display and description
   - Model Generation card display and description
+  - Image Edit card display and description
 - **Navigation Function**: Test screen transitions when cards clicked
   - Transition to Virtual Try-On page
   - Transition to Model Generation page
+  - Transition to Image Edit page
 - **UI Elements**: Confirm icons and layout
   - SVG icon display
   - Hover effect style application
@@ -331,3 +344,43 @@ npm test -- src/components/__tests__/
   - List structure within Paper component
   - Divider display between settings
   - Switch placement in ListItemSecondaryAction
+
+### ImageEdit.test.tsx
+- **Page Rendering**: Confirm basic display of image editing page
+  - Page title "Image Edit" display
+  - Image upload section display
+  - Prompt input field display
+  - Generate button display
+- **Image Upload Function**: Test image file upload processing
+  - Callback calls when file selected
+  - Image preview display
+  - Image size acquisition and state storage
+  - Automatic PNG conversion (when JPEG/WebP input)
+- **Image Size Validation**: Test Nova 2 recommended size validation
+  - No warning for valid sizes (2880x1440, 2048x2048, etc.)
+  - Warning message display for invalid sizes
+  - Processing can continue even with warning display
+- **Prompt Input**: Test edit prompt input
+  - Text field input
+  - Accept Japanese/English prompts
+  - Maximum 1024 character limit
+- **Validation**: Test input validation
+  - Error display for empty prompt
+  - Error display when image not uploaded
+- **API Call**: Test image editing API call
+  - API call with correct parameters
+  - Confirm input image size transmission
+  - Confirm multiple image generation parameter transmission
+- **S3 Polling**: Test image generation completion detection
+  - Polling via recursive setTimeout
+  - Parallel acquisition of all images via Promise.all
+  - Single state update after all images ready
+  - Timeout processing (5 minutes)
+- **Error Display**: Confirm error message display
+  - Upload errors
+  - API call errors
+  - Polling timeout errors
+- **Image Display**: Test generated image display
+  - Use of ImageDisplay component
+  - Grid display of multiple images
+  - Loading state display
