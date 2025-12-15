@@ -1,5 +1,6 @@
 lambda/test/test_data/output/
 *security_review/
+*backup/
 
 # coding agent
 *.clinerules/*
