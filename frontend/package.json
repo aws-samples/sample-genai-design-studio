@@ -19,7 +19,7 @@
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
     "@types/react-router-dom": "^5.3.3",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "aws-amplify": "^6.15.1",
     "axios": "^1.12.0",
